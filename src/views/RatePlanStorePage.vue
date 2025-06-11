@@ -2,23 +2,37 @@
   <div class="rate-plan-list-container">
     <header class="list-header">
       <h1>5G/LTE 요금제 목록</h1>
-      <button class="auth-button" @click="isLoggedIn ? handleLogout() : router.push('/login')">
-        {{ isLoggedIn ? '로그아웃' : '로그인' }}
+      <button
+        class="auth-button"
+        @click="isLoggedIn ? handleLogout() : router.push('/login')"
+      >
+        {{ isLoggedIn ? "로그아웃" : "로그인" }}
       </button>
     </header>
 
     <div class="rate-plan-cards">
-      <div v-for="plan in ratePlans" :key="plan.ratePlanId" class="rate-plan-card">
+      <div
+        v-for="plan in ratePlans"
+        :key="plan.ratePlanId"
+        class="rate-plan-card"
+      >
         <div class="card-header">
-          <h2 class="plan-name" v-html="plan.planName.replace('\\n', '<br>')"></h2>
+          <h2
+            class="plan-name"
+            v-html="plan.planName.replace('\\n', '<br>')"
+          ></h2>
           <p class="plan-summary">{{ plan.summary }}</p>
         </div>
         <div class="card-body">
           <div class="fee-section">
-            <span class="monthly-fee">월 {{ formatCurrency(plan.monthlyFee) }}원</span>
-            <span class="discount-fee">약정할인 월 {{ formatCurrency(plan.discountFee) }}원</span>
+            <span class="monthly-fee"
+              >월 {{ formatCurrency(plan.monthlyFee) }}원</span
+            >
+            <span class="discount-fee"
+              >약정할인 월 {{ formatCurrency(plan.discountFee) }}원</span
+            >
           </div>
-          </div>
+        </div>
       </div>
     </div>
 
@@ -33,7 +47,13 @@
       </div>
       <div class="chatbot-messages">
         <p class="chatbot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
+        <div class="chatbot-msg">
+          <button @click="goToReviewPage" class="chatbot-review-btn">
+            챗봇 리뷰 작성하기
+          </button>
+        </div>
       </div>
+
       <div class="chatbot-input">
         <input type="text" placeholder="메시지를 입력하세요..." />
         <button>전송</button>
@@ -43,138 +63,158 @@
     <div class="pagination">
       <button :disabled="currentPage <= 1" @click="prevPage">이전</button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
-      <button :disabled="currentPage >= totalPages" @click="nextPage">다음</button>
+      <button :disabled="currentPage >= totalPages" @click="nextPage">
+        다음
+      </button>
       <p class="total-elements">총 {{ totalElements }}개</p>
     </div>
+    <ChatbotReviewModal
+      v-if="showReviewModal"
+      @close="showReviewModal = false"
+      @submit="handleReviewSubmit"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'; // axios 추가
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios"; // axios 추가
+import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 
-const router = useRouter()
-const isLoggedIn = ref(false)
-const showChatbot = ref(false)
+const router = useRouter();
+const isLoggedIn = ref(false);
+const showChatbot = ref(false);
+const showReviewModal = ref(false);
 
 // 컴포넌트 마운트 시 로그인 상태 확인
 onMounted(() => {
-  isLoggedIn.value = !!localStorage.getItem('accessToken')
-})
+  isLoggedIn.value = !!localStorage.getItem("accessToken");
+});
 
 // 로그아웃 핸들러
 const handleLogout = async () => {
   try {
+    const accessToken = localStorage.getItem("accessToken");
 
-    const accessToken = localStorage.getItem('accessToken');
-    
-    await axios.post('/api/auth/logout', {}, { 
-      headers: {
-      // 'Authorization' 헤더에 'Bearer ' 접두사와 함께 가져온 토큰 값을 사용합니다.
-      'Authorization': accessToken ? `Bearer ${accessToken}` : '', 
-      },
-      withCredentials: true 
-    });
+    await axios.post(
+      "/api/auth/logout",
+      {},
+      {
+        headers: {
+          // 'Authorization' 헤더에 'Bearer ' 접두사와 함께 가져온 토큰 값을 사용합니다.
+          Authorization: accessToken ? `Bearer ${accessToken}` : "",
+        },
+        withCredentials: true,
+      }
+    );
   } catch (error) {
-    console.error('로그아웃 중 오류 발생:', error);
+    console.error("로그아웃 중 오류 발생:", error);
   } finally {
-    localStorage.removeItem('accessToken'); // Access Token 제거
+    localStorage.removeItem("accessToken"); // Access Token 제거
     isLoggedIn.value = false; // 로그인 상태 업데이트
-    router.push('/login'); // 로그인 페이지로 리다이렉트
+    router.push("/login"); // 로그인 페이지로 리다이렉트
   }
-}
+};
 
 const handleMascotClick = () => {
-  showChatbot.value = !showChatbot.value
-}
+  showChatbot.value = !showChatbot.value;
+};
 
-const ratePlans = ref([])
-const currentPage = ref(1)
-const totalPages = ref(1)
-const totalElements = ref(0)
+const goToReviewPage = () => {
+  showReviewModal.value = true;
+};
+
+const handleReviewSubmit = (review) => {
+  console.log("리뷰 제출됨:", review);
+  // TODO: 실제 API로 리뷰 전송
+};
+
+const ratePlans = ref([]);
+const currentPage = ref(1);
+const totalPages = ref(1);
+const totalElements = ref(0);
 
 const formatCurrency = (amount) => {
-  return amount.toLocaleString('ko-KR')
-}
+  return amount.toLocaleString("ko-KR");
+};
 
 const fetchRatePlans = async () => {
   try {
-
     /* API 완성되면 axios로 api가져올 것! */
     const dummyData = {
       items: [
         {
           ratePlanId: 1,
-          planName: '5G 프리미어 에센셜\n테더링+쉐어링',
-          summary: '5G 프리미어 에센셜',
+          planName: "5G 프리미어 에센셜\n테더링+쉐어링",
+          summary: "5G 프리미어 에센셜",
           monthlyFee: 80000,
-          discountFee: 56000
+          discountFee: 56000,
         },
         {
           ratePlanId: 2,
-          planName: '5G 프리미어 레귤러\n테더링',
-          summary: '5G 프리미어 레귤러',
+          planName: "5G 프리미어 레귤러\n테더링",
+          summary: "5G 프리미어 레귤러",
           monthlyFee: 75000,
-          discountFee: 46000
-        }
+          discountFee: 46000,
+        },
       ],
       page: 1,
       size: 5,
       totalPages: 3,
-      totalElements: 30
-    }
+      totalElements: 30,
+    };
 
-    ratePlans.value = dummyData.items
-    currentPage.value = dummyData.page
-    totalPages.value = dummyData.totalPages
-    totalElements.value = dummyData.totalElements
+    ratePlans.value = dummyData.items;
+    currentPage.value = dummyData.page;
+    totalPages.value = dummyData.totalPages;
+    totalElements.value = dummyData.totalElements;
   } catch (e) {
-    console.error('API 오류', e)
+    console.error("API 오류", e);
     // 실제 API 연동 시 에러 처리 로직 추가
   }
-}
+};
 
 const prevPage = () => {
   if (currentPage.value > 1) {
-    currentPage.value--
+    currentPage.value--;
     // fetchRatePlans(); // 실제 API 연동 시 주석 해제
   }
-}
+};
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
-    currentPage.value++
+    currentPage.value++;
     // fetchRatePlans(); // 실제 API 연동 시 주석 해제
   }
-}
+};
 
-onMounted(fetchRatePlans)
+onMounted(fetchRatePlans);
 </script>
 
 <style scoped>
 /* 전체 컨테이너 및 배경 */
 .rate-plan-list-container {
   padding: 0;
-  font-family: 'Pretendard', sans-serif;
-  position: relative; 
-  background-color: #f0f2f5; 
-  min-height: 100vh; 
+  font-family: "Pretendard", sans-serif;
+  position: relative;
+  background-color: #f0f2f5;
+  min-height: 100vh;
 }
 
 /* 헤더 */
 .list-header {
-  background-color: #e0186f; 
+  background-color: #e0186f;
   color: white;
-  padding: 45px 40px; 
-  margin-bottom: 25px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
+  padding: 45px 40px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .list-header h1 {
-  font-size: 28px; 
+  font-size: 28px;
   margin: 0;
   font-weight: 700;
 }
@@ -193,7 +233,12 @@ onMounted(fetchRatePlans)
 }
 
 .auth-button:hover {
-  background-color: rgba(255, 255, 255, 0.2); /* 호버 시 투명도 있는 흰색 배경 */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ); /* 호버 시 투명도 있는 흰색 배경 */
 }
 
 /* 요금제 카드 목록 */
@@ -226,9 +271,8 @@ onMounted(fetchRatePlans)
   position: relative; /* 뱃지 위치 조정을 위해 */
 }
 
-
 .plan-name {
-  font-size: 20px; 
+  font-size: 20px;
   font-weight: 700;
   margin-top: 0;
   margin-bottom: 5px;
@@ -237,7 +281,7 @@ onMounted(fetchRatePlans)
 }
 
 .plan-name ::v-deep(br) {
-  content: '';
+  content: "";
   display: block;
   margin-bottom: 0.2em; /* 줄바꿈 시 간격 */
 }
@@ -304,8 +348,8 @@ onMounted(fetchRatePlans)
   position: fixed;
   bottom: 105px; /* 마스코트 버튼 바로 위 (마스코트 높이 + 여백) */
   right: 40px; /* 마스코트 버튼과 정렬 */
-  width: 700px; 
-  height: 530px; 
+  width: 700px;
+  height: 530px;
   background-color: #fff;
   border-radius: 16px; /* 모든 모서리를 둥글게 */
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
@@ -313,7 +357,7 @@ onMounted(fetchRatePlans)
   flex-direction: column;
   overflow: hidden;
   z-index: 1000;
-  font-family: 'Pretendard', sans-serif;
+  font-family: "Pretendard", sans-serif;
   animation: slideInUp 0.3s ease-out; /* 등장 애니메이션 */
 }
 
@@ -378,7 +422,22 @@ onMounted(fetchRatePlans)
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
-  margin-right: 8px; 
+  margin-right: 8px;
+}
+
+.chatbot-review-btn {
+  background-color: #fa3d8f;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.chatbot-review-btn:hover {
+  background-color: #e0186f;
 }
 
 .chatbot-input button {
