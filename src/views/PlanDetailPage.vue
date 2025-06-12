@@ -68,11 +68,11 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
-import axios from "axios";
+// import { useRoute } from "vue-router";
+// import axios from "axios";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 
-const route = useRoute();
+// const route = useRoute();
 
 // 예시 하드코딩 데이터
 const examplePlan = {
