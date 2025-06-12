@@ -4,6 +4,7 @@ import LoginPage from "../views/LoginPage.vue";
 import DashBoardPage from "../views/DashBoardPage.vue";
 import RatePlanStorePage from "../views/RatePlanStorePage.vue";
 import ChatBotReviewPage from "../views/ChatBotReviewPage.vue";
+import PlanDetailPage from '../views/PlanDetailPage.vue'
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -12,6 +13,12 @@ const routes = [
     path: "/rateplan/storage",
     name: "RatePlanStore",
     component: RatePlanStorePage,
+  },
+  {
+    path: "/rateplan/storage/:rateplanId",
+    name: "PlanDetail",
+    component: PlanDetailPage,
+    props: true
   },
   { path: "/dashboard", name: "DashBoard", component: DashBoardPage },
   { path: "/reviews", name: "ChatBotReview", component: ChatBotReviewPage },
