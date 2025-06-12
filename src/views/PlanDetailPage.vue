@@ -4,8 +4,12 @@
     <div class="plan-detail-title">{{ plan.planName }}</div>
     <div class="plan-detail-desc">{{ plan.summary }}</div>
     <div class="plan-detail-line"></div>
-    <div class="plan-detail-fee">월 {{ formatCurrency(plan.monthlyFee) }}원</div>
-    <div class="plan-detail-discount">약정 할인 시 월 {{ formatCurrency(plan.discountFee) }}원</div>
+    <div class="plan-detail-fee">
+      월 {{ formatCurrency(plan.monthlyFee) }}원
+    </div>
+    <div class="plan-detail-discount">
+      약정 할인 시 월 {{ formatCurrency(plan.discountFee) }}원
+    </div>
     <!-- 카드 5개 -->
     <div class="plan-card-row">
       <div class="plan-card">
@@ -63,37 +67,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import axios from 'axios'
-import ChatbotReviewModal from '@/components/ChatbotReviewModal.vue'
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import axios from "axios";
+import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 
-const route = useRoute()
+const route = useRoute();
 
 // 예시 하드코딩 데이터
 const examplePlan = {
-  planName: '5G 프리미엄',
-  summary: 'U⁺5G 서비스를 마음껏 즐길 수 있는 5G 요금제',
+  planName: "5G 프리미엄",
+  summary: "U⁺5G 서비스를 마음껏 즐길 수 있는 5G 요금제",
   monthlyFee: 85000,
   discountFee: 58000,
-  dataAllowance: '무제한',
-  shareData: '테더링+쉐어링 70GB',
-  voiceAllowance: '집/이동전화 무제한',
-  smsAllowance: '기본제공',
-  basicBenefit: 'U+ 모바일tv 기본 월정액 무료'
-}
+  dataAllowance: "무제한",
+  shareData: "테더링+쉐어링 70GB",
+  voiceAllowance: "집/이동전화 무제한",
+  smsAllowance: "기본제공",
+  basicBenefit: "U+ 모바일tv 기본 월정액 무료",
+};
 
-const plan = ref({ ...examplePlan })
-const showChatbot = ref(false)
-const showReviewModal = ref(false)
+const plan = ref({ ...examplePlan });
+const showChatbot = ref(false);
+const showReviewModal = ref(false);
 
 const handleMascotClick = () => {
-  showChatbot.value = !showChatbot.value
-}
+  showChatbot.value = !showChatbot.value;
+};
 
 const goToReviewPage = () => {
-  showReviewModal.value = true
-}
+  showReviewModal.value = true;
+};
 
 const handleReviewSubmit = (review) => {
   console.log("리뷰 제출됨:", review);
@@ -101,23 +105,27 @@ const handleReviewSubmit = (review) => {
 };
 
 const formatCurrency = (amount) => {
-  return amount ? amount.toLocaleString('ko-KR') : '-'
-}
+  return amount ? amount.toLocaleString("ko-KR") : "-";
+};
+
+// onMounted(async () => {
+//   try {
+//     const rateplanId = route.params.rateplanId
+//     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
+//     // 실제 API 연동
+//     const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
+//     console.log('API response:', data);
+//     plan.value = data
+//   } catch (e) {
+//     console.error('API 오류:', e)
+//     // 실패 시 하드코딩 데이터 사용
+//     plan.value = { ...examplePlan }
+//   }
+// })
 
 onMounted(async () => {
-  try {
-    const rateplanId = route.params.rateplanId
-    console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
-    // 실제 API 연동
-    const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
-    console.log('API response:', data);
-    plan.value = data
-  } catch (e) {
-    console.error('API 오류:', e)
-    // 실패 시 하드코딩 데이터 사용
-    plan.value = { ...examplePlan }
-  }
-})
+  plan.value = { ...examplePlan };
+});
 </script>
 
 <style scoped>
@@ -128,7 +136,7 @@ onMounted(async () => {
   left: 0;
   top: 0;
   background: #fff;
-  font-family: 'Pretendard', sans-serif;
+  font-family: "Pretendard", sans-serif;
 }
 .plan-detail-pink {
   position: absolute;
@@ -188,7 +196,7 @@ onMounted(async () => {
   padding-left: 6vw;
 }
 .plan-card {
-  background: #E6027E;
+  background: #e6027e;
   border-radius: 1.2rem;
   width: 13vw;
   min-width: 150px;
@@ -203,7 +211,8 @@ onMounted(async () => {
   box-sizing: border-box;
   text-align: left;
 }
-.plan-card-title, .plan-card-content {
+.plan-card-title,
+.plan-card-content {
   text-align: left;
   width: 100%;
 }
@@ -271,7 +280,7 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   z-index: 1000;
-  font-family: 'Pretendard', sans-serif;
+  font-family: "Pretendard", sans-serif;
   animation: slideInUp 0.3s ease-out;
 }
 .chatbot-header {
@@ -354,4 +363,4 @@ onMounted(async () => {
     opacity: 1;
   }
 }
-</style> 
+</style>
