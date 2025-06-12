@@ -15,6 +15,7 @@
         v-for="plan in ratePlans"
         :key="plan.ratePlanId"
         class="rate-plan-card"
+        @click="goToDetail(plan.ratePlanId)"
       >
         <div class="card-header">
           <h2
@@ -128,6 +129,11 @@ const goToReviewPage = () => {
 const handleReviewSubmit = (review) => {
   console.log("리뷰 제출됨:", review);
   // TODO: 실제 API로 리뷰 전송
+};
+
+const goToDetail = (rateplanId) => {
+  console.log('goToDetail called with rateplanId:', rateplanId);
+  router.push({ name: 'PlanDetail', params: { rateplanId } });
 };
 
 const ratePlans = ref([]);
