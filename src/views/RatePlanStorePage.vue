@@ -41,25 +41,12 @@
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
 
-    <div v-if="showChatbot" class="chatbot-box">
-      <div class="chatbot-header">
-        <span>요금제 상담 챗봇</span>
-        <button class="chatbot-close" @click="showChatbot = false">✕</button>
-      </div>
-      <div class="chatbot-messages">
-        <p class="chatbot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
-        <div class="chatbot-msg">
-          <button @click="goToReviewPage" class="chatbot-review-btn">
-            챗봇 리뷰 작성하기
-          </button>
-        </div>
-      </div>
-
-      <div class="chatbot-input">
-        <input type="text" placeholder="메시지를 입력하세요..." />
-        <button>전송</button>
-      </div>
-    </div>
+    <Chatbot
+      v-if="showChatbot"
+      :openTrigger="chatbotOpenTrigger"
+      @close="showChatbot = false"
+      @review="goToReviewPage"
+    />
 
     <div class="pagination">
       <button :disabled="currentPage <= 1" @click="prevPage">이전</button>
@@ -82,11 +69,13 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios"; // axios 추가
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
+import Chatbot from "@/components/ChatbotComponent.vue";
 
 const router = useRouter();
 const isLoggedIn = ref(false);
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
+const chatbotOpenTrigger = ref(false);
 
 // 컴포넌트 마운트 시 로그인 상태 확인
 onMounted(() => {
@@ -120,6 +109,10 @@ const handleLogout = async () => {
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
+  if (showChatbot.value) {
+    chatbotOpenTrigger.value = false;
+    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
+  }
 };
 
 const goToReviewPage = () => {
