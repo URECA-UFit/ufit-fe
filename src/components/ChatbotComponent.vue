@@ -187,8 +187,7 @@ onBeforeUnmount(() => {
 }
 
 .chatbot-header {
-  padding: 12px 16px;
-  background: #fa3d8f;
+  background: linear-gradient(90deg, #fa3d8f 0%, #a259c6 100%);
   color: white;
   padding: 18px 22px;
   font-weight: bold;
@@ -196,8 +195,8 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   font-size: 18px;
-  border-radius: 20px 20px 0 0;
   box-shadow: 0 2px 8px rgba(250,61,143,0.08);
+  border-bottom: none;
 }
 
 .chatbot-close {
