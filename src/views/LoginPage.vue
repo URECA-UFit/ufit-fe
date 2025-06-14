@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useRouter } from 'vue-router'
 
 const email = ref('')
@@ -107,7 +107,7 @@ const handleLogin = async () => {
 
   try {
     // 로그인 API 호출
-    const res = await axios.post('/api/auth/login', {
+    const res = await api.post('/api/auth/login', {
       email: email.value,
       password: password.value
     }, {

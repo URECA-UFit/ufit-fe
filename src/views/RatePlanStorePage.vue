@@ -1,14 +1,6 @@
 <template>
   <div class="rate-plan-list-container">
-    <header class="list-header">
-      <h1>5G/LTE 요금제 목록</h1>
-      <button
-        class="auth-button"
-        @click="isLoggedIn ? handleLogout() : router.push('/login')"
-      >
-        {{ isLoggedIn ? "로그아웃" : "로그인" }}
-      </button>
-    </header>
+    <CommonHeader title="5G/LTE 요금제 목록" />
 
     <div class="rate-plan-cards">
       <div
@@ -67,45 +59,14 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios"; // axios 추가
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
+import CommonHeader from "@/components/CommonHeader.vue";
 
 const router = useRouter();
-const isLoggedIn = ref(false);
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
 const chatbotOpenTrigger = ref(false);
-
-// 컴포넌트 마운트 시 로그인 상태 확인
-onMounted(() => {
-  isLoggedIn.value = !!localStorage.getItem("accessToken");
-});
-
-// 로그아웃 핸들러
-const handleLogout = async () => {
-  try {
-    const accessToken = localStorage.getItem("accessToken");
-
-    await axios.post(
-      "/api/auth/logout",
-      {},
-      {
-        headers: {
-          // 'Authorization' 헤더에 'Bearer ' 접두사와 함께 가져온 토큰 값을 사용합니다.
-          Authorization: accessToken ? `Bearer ${accessToken}` : "",
-        },
-        withCredentials: true,
-      }
-    );
-  } catch (error) {
-    console.error("로그아웃 중 오류 발생:", error);
-  } finally {
-    localStorage.removeItem("accessToken"); // Access Token 제거
-    isLoggedIn.value = false; // 로그인 상태 업데이트
-    router.push("/login"); // 로그인 페이지로 리다이렉트
-  }
-};
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;

@@ -46,7 +46,7 @@
 
 <script setup>
 import { ref, defineEmits, watch, defineProps, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import axios from 'axios';
+import api from '@/api/axiosInstance'
 
 const emit = defineEmits(['close', 'review']);
 const props = defineProps({ openTrigger: Boolean });
@@ -85,7 +85,7 @@ async function fetchMorePastMessages() {
   isFetchingPast.value = true;
   try {
     const accessToken = getAccessToken();
-    const { data: messagesPage } = await axios.get(
+    const { data: messagesPage } = await api.get(
       `/api/chats/${chatRoomId.value}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -116,14 +116,14 @@ async function openChatbot() {
   isFetchingPast.value = false;
   try {
     const accessToken = getAccessToken();
-    const { data: room } = await axios.post('/api/chats/rooms', {}, {
+    const { data: room } = await api.post('/api/chats/rooms', {}, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     chatRoomId.value = room.chatRoomId;
     isAnonymous.value = room.isAnonymous;
 
     if (!room.isAnonymous) {
-      const { data: messagesPage } = await axios.get(
+      const { data: messagesPage } = await api.get(
         `/api/chats/${room.chatRoomId}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
