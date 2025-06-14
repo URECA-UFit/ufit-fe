@@ -36,28 +36,15 @@
     <!-- 하단 회색 영역 -->
     <div class="plan-detail-bottom"></div>
     <div class="plan-detail-bottom-title">기본 혜택</div>
-    <!-- 문어 버튼/챗봇 -->
+    <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
-    <div v-if="showChatbot" class="chatbot-box">
-      <div class="chatbot-header">
-        <span>요금제 상담 챗봇</span>
-        <button class="chatbot-close" @click="showChatbot = false">✕</button>
-      </div>
-      <div class="chatbot-messages">
-        <p class="chatbot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
-        <div class="chatbot-msg">
-          <button @click="goToReviewPage" class="chatbot-review-btn">
-            챗봇 리뷰 작성하기
-          </button>
-        </div>
-      </div>
-      <div class="chatbot-input">
-        <input type="text" placeholder="메시지를 입력하세요..." />
-        <button>전송</button>
-      </div>
-    </div>
+    <Chatbot
+      v-if="showChatbot"
+      @close="showChatbot = false"
+      @review="goToReviewPage"
+    />
     <ChatbotReviewModal
       v-if="showReviewModal"
       @close="showReviewModal = false"
@@ -71,6 +58,7 @@ import { ref, onMounted } from "vue";
 // import { useRoute } from "vue-router";
 // import axios from "axios";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
+import Chatbot from "@/components/ChatbotComponent.vue";
 
 // const route = useRoute();
 
