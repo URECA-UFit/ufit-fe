@@ -42,6 +42,7 @@
     </button>
     <Chatbot
       v-if="showChatbot"
+      :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
       @review="goToReviewPage"
     />
@@ -78,9 +79,14 @@ const examplePlan = {
 const plan = ref({ ...examplePlan });
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
+const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
+  if (showChatbot.value) {
+    chatbotOpenTrigger.value = false;
+    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
+  }
 };
 
 const goToReviewPage = () => {

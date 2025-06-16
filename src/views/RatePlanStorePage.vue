@@ -37,7 +37,6 @@
       v-if="showChatbot"
       :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
-      @review="goToReviewPage"
     />
 
     <div class="pagination">
@@ -48,24 +47,17 @@
       </button>
       <p class="total-elements">총 {{ totalElements }}개</p>
     </div>
-    <ChatbotReviewModal
-      v-if="showReviewModal"
-      @close="showReviewModal = false"
-      @submit="handleReviewSubmit"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 import CommonHeader from "@/components/CommonHeader.vue";
 
 const router = useRouter();
 const showChatbot = ref(false);
-const showReviewModal = ref(false);
 const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
@@ -74,15 +66,6 @@ const handleMascotClick = () => {
     chatbotOpenTrigger.value = false;
     setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
   }
-};
-
-const goToReviewPage = () => {
-  showReviewModal.value = true;
-};
-
-const handleReviewSubmit = (review) => {
-  console.log("리뷰 제출됨:", review);
-  // TODO: 실제 API로 리뷰 전송
 };
 
 const goToDetail = (rateplanId) => {
