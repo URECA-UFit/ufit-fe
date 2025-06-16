@@ -67,14 +67,14 @@ const currentPage = ref(1)
 const hasPrevious = ref(false)
 const hasNext = ref(false)
 const ratePlanMetrics = ref([])
-const hoverSide = ref(null) // 'left' or 'right' or null
+const hoverSide = ref(null)
 
 const colors = [
   '#e0186f', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
   '#9966FF', '#FF9F40', '#8c564b', '#e377c2', '#7f7f7f',
   '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff',
   '#ff00ff', '#c0c0c0', '#800000', '#808000', '#008000' 
-]; // 요금제 수에 맞게 색상 추가
+];
 
 const hasData = computed(() => {
   return ratePlanMetrics.value && ratePlanMetrics.value.length > 0
@@ -83,32 +83,24 @@ const hasData = computed(() => {
 const fetchRatePlanMetrics = async (page) => {
   loading.value = true
   try {
-    console.log('API 요청 시작:', `/api/admin/rateplans/metrics?page=${page}&size=10`)
     const response = await api.get(`/api/admin/rateplans/metrics`, {
       params: {
         page: page,
-        size: 10
+        size: 5
       },
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       }
     })
-    console.log('API 응답:', response.data)
     const data = response.data
 
-    // API 응답 데이터 처리
     ratePlanMetrics.value = data.item || []
     
-    // 페이지네이션 상태 업데이트
     hasPrevious.value = data.hasPrevious
     hasNext.value = data.hasNext
     currentPage.value = data.page
 
-    console.log('Page:', data.page, 'HasPrevious:', data.hasPrevious, 'HasNext:', data.hasNext)
   } catch (error) {
-    console.error('요금제 메트릭 조회 실패:', error)
-    console.error('에러 상세:', error.response?.data || error.message)
-    // 에러 시 빈 배열로 초기화
     ratePlanMetrics.value = []
     hasPrevious.value = false
     hasNext.value = false
@@ -151,7 +143,7 @@ const chartData = computed(() => {
   const datasets = ratePlanMetrics.value.map((item, index) => {
     const color = colors[index % colors.length];
     return {
-      label: item.planName, // 요금제 이름이 레전드 레이블이 됩니다.
+      label: item.planName,
       data: [item.popularity === 0 ? 0.1 : item.popularity],
       backgroundColor: color,
       borderColor: color,
@@ -160,7 +152,7 @@ const chartData = computed(() => {
   });
 
   return {
-    labels: ['요금제 인기도'], // X축 레이블을 일반적인 텍스트로 설정
+    labels: ['요금제 인기도'],
     datasets: datasets
   };
 })
@@ -178,20 +170,20 @@ const chartOptions = ref({
       ticks: {}
     },
     x: {
-      display: false, // X축 레이블 숨김
+      display: false,
       title: {
-        display: false, // X축 제목 숨김
+        display: false,
         text: ''
       }
     }
   },
   plugins: {
     legend: {
-      display: true, // 레전드 표시
-      position: 'right', // 레전드 우측 배치
+      display: true,
+      position: 'right',
       labels: {
-        boxWidth: 10, // 네모의 너비를 10px로 설정
-        boxHeight: 10 // 네모의 높이를 10px로 설정 (정사각형)
+        boxWidth: 10,
+        boxHeight: 10
       }
     },
     title: {
@@ -201,12 +193,19 @@ const chartOptions = ref({
   }
 })
 
-// ratePlanMetrics가 변경될 때마다 차트 데이터 및 y축 옵션 업데이트
 watch(ratePlanMetrics, (newMetrics) => {
   if (newMetrics && newMetrics.length > 0) {
     const max = Math.max(...newMetrics.map(item => item.popularity))
-    chartOptions.value.scales.y.max = Math.ceil(max * 1.1)
-    chartOptions.value.scales.y.ticks.stepSize = Math.ceil(max / 5)
+    if (max === 0) {
+      chartOptions.value.scales.y.max = 10
+      chartOptions.value.scales.y.ticks.stepSize = 2
+    } else {
+      chartOptions.value.scales.y.max = Math.ceil(max * 1.1)
+      chartOptions.value.scales.y.ticks.stepSize = Math.ceil(max / 5)
+    }
+  } else {
+    chartOptions.value.scales.y.max = 10;
+    chartOptions.value.scales.y.ticks.stepSize = 2;
   }
 }, { immediate: true })
 </script>
