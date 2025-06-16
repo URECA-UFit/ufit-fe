@@ -5,10 +5,16 @@ import DashBoardPage from "../views/DashBoardPage.vue";
 import RatePlanStorePage from "../views/RatePlanStorePage.vue";
 import ChatBotReviewPage from "../views/ChatBotReviewPage.vue";
 import PlanDetailPage from '../views/PlanDetailPage.vue'
+import AdminRatePlanStorePage from "../views/AdminRatePlanStorePage.vue"
 
 const routes = [
   { path: "/", redirect: "/login" },
   { path: "/login", name: "Login", component: LoginPage },
+  {
+    path: "/admin/rateplan/storage",
+    name: "AdmonRatePlanStore",
+    component: AdminRatePlanStorePage,
+  },
   {
     path: "/rateplan/storage",
     name: "RatePlanStore",
