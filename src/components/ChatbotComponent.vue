@@ -116,9 +116,9 @@ async function openChatbot() {
   isFetchingPast.value = false;
   try {
     const accessToken = getAccessToken();
-    const { data: room } = await api.post('/api/chats/rooms', {}, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
+    const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+    const { data: room } = await api.post('/api/chats/rooms', {}, { headers }); 
+    console.log(room)
     chatRoomId.value = room.chatRoomId;
     isAnonymous.value = room.isAnonymous;
 
