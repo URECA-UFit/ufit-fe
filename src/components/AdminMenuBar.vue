@@ -7,7 +7,7 @@
       <li :class="{ active: isActive('/reviews') }" @click="goTo('/reviews')">
         <span class="icon">📝</span> <span class="label">리뷰 목록</span>
       </li>
-      <li :class="{ active: isActive('/rateplan/storage') }" @click="goTo('/rateplan/storage')">
+      <li :class="{ active: isActive('/admin/rateplan/storage') }" @click="goTo('/admin/rateplan/storage')">
         <span class="icon">📦</span> <span class="label">요금제 목록</span>
       </li>
       <li :class="{ active: isActive('/rateplan/add') }" @click="goTo('/rateplan/add')">
