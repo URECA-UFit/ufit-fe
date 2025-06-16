@@ -76,61 +76,51 @@ const hasData = computed(() => {
 const fetchRatePlanMetrics = async (page) => {
   loading.value = true
   try {
-    const response = await api.get(`/api/admin/rateplans/metrics?page=${page-1}&size=10`)
+    console.log('API 요청 시작:', `/api/admin/rateplans/metrics?page=${page}&size=10`)
+    const response = await api.get(`/api/admin/rateplans/metrics`, {
+      params: {
+        page: page,
+        size: 10
+      },
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
+    console.log('API 응답:', response.data)
     const data = response.data
 
-    // 실제 데이터가 없거나 item이 비어있으면 더미 데이터 사용
-    let items = data.item && data.item.length > 0 ? data.item : [
-      { planName: '요금제A', popularity: 100 },
-      { planName: '요금제B', popularity: 80 },
-      { planName: '요금제C', popularity: 60 },
-      { planName: '요금제D', popularity: 40 },
-      { planName: '요금제E', popularity: 20 },
-      { planName: '요금제F', popularity: 90 },
-      { planName: '요금제G', popularity: 70 },
-      { planName: '요금제H', popularity: 50 },
-      { planName: '요금제I', popularity: 30 },
-      { planName: '요금제J', popularity: 10 }
-    ]
-    ratePlanMetrics.value = items
+    // API 응답 데이터 처리
+    ratePlanMetrics.value = data.item || []
     
     // 페이지네이션 상태 업데이트
-    hasPrevious.value = page > 1
-    hasNext.value = true
-    currentPage.value = page
+    hasPrevious.value = data.hasPrevious
+    hasNext.value = data.hasNext
+    currentPage.value = data.page
 
-    console.log('Page:', page, 'HasPrevious:', hasPrevious.value, 'HasNext:', hasNext.value)
+    console.log('Page:', data.page, 'HasPrevious:', data.hasPrevious, 'HasNext:', data.hasNext)
   } catch (error) {
-    // 에러 시에도 더미 데이터 사용
-    ratePlanMetrics.value = [
-      { planName: '요금제A', popularity: 100 },
-      { planName: '요금제B', popularity: 80 },
-      { planName: '요금제C', popularity: 60 },
-      { planName: '요금제D', popularity: 40 },
-      { planName: '요금제E', popularity: 20 },
-      { planName: '요금제F', popularity: 90 },
-      { planName: '요금제G', popularity: 70 },
-      { planName: '요금제H', popularity: 50 },
-      { planName: '요금제I', popularity: 30 },
-      { planName: '요금제J', popularity: 10 }
-    ]
-    hasPrevious.value = page > 1
-    hasNext.value = true
-    currentPage.value = page
-    console.error(error)
+    console.error('요금제 메트릭 조회 실패:', error)
+    console.error('에러 상세:', error.response?.data || error.message)
+    // 에러 시 빈 배열로 초기화
+    ratePlanMetrics.value = []
+    hasPrevious.value = false
+    hasNext.value = false
+    currentPage.value = 1
   } finally {
     loading.value = false
   }
 }
 
 const fetchPreviousPage = () => {
-  if (currentPage.value > 1) {
+  if (hasPrevious.value) {
     fetchRatePlanMetrics(currentPage.value - 1)
   }
 }
 
 const fetchNextPage = () => {
-  fetchRatePlanMetrics(currentPage.value + 1)
+  if (hasNext.value) {
+    fetchRatePlanMetrics(currentPage.value + 1)
+  }
 }
 
 function onChartMouseMove(e) {
@@ -150,48 +140,47 @@ onMounted(() => {
   fetchRatePlanMetrics(1)
 })
 
-const chartData = ref({
-  labels: [],
-  datasets: [
-    {
-      label: '요금제 인기도',
-      backgroundColor: '#F0E180',
-      data: [],
-      borderWidth: 1,
-      borderColor: '#F0E180'
-    }
-  ]
+const chartData = computed(() => {
+  return {
+    labels: ratePlanMetrics.value.map(item => item.planName),
+    datasets: [
+      {
+        label: '인기도',
+        data: ratePlanMetrics.value.map(item => item.popularity),
+        backgroundColor: '#e0186f',
+        borderColor: '#e0186f',
+        borderWidth: 1
+      }
+    ]
+  }
 })
 
 const chartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: true,
-      position: 'top'
-    },
-    title: {
-      display: true,
-      text: '요금제별 인기도',
-      font: {
-        size: 16
-      }
-    }
-  },
   scales: {
     y: {
       beginAtZero: true,
-      max: 100,
-      ticks: {
-        stepSize: 20
-      }
+      title: {
+        display: true,
+        text: '인기도'
+      },
+      ticks: {}
     },
     x: {
-      ticks: {
-        maxRotation: 45,
-        minRotation: 45
+      title: {
+        display: true,
+        text: '요금제'
       }
+    }
+  },
+  plugins: {
+    legend: {
+      display: false
+    },
+    title: {
+      display: true,
+      text: '요금제별 인기도'
     }
   }
 })
