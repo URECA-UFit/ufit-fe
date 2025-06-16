@@ -6,6 +6,7 @@ import RatePlanStorePage from "../views/RatePlanStorePage.vue";
 import ChatBotReviewPage from "../views/ChatBotReviewPage.vue";
 import PlanDetailPage from '../views/PlanDetailPage.vue'
 import AdminRatePlanStorePage from "../views/AdminRatePlanStorePage.vue"
+import RatePlanAddPage from "../views/RatePlanAddPage.vue"
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -28,6 +29,7 @@ const routes = [
   },
   { path: "/dashboard", name: "DashBoard", component: DashBoardPage },
   { path: "/reviews", name: "ChatBotReview", component: ChatBotReviewPage },
+  { path: "/rateplan/add", name: "RatePlanAdd", component: RatePlanAddPage },
 ];
 
 const router = createRouter({
