@@ -67,7 +67,14 @@ const currentPage = ref(1)
 const hasPrevious = ref(false)
 const hasNext = ref(false)
 const ratePlanMetrics = ref([])
-const hoverSide = ref(null) // 'left' or 'right' or null
+const hoverSide = ref(null)
+
+const colors = [
+  '#e0186f', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+  '#9966FF', '#FF9F40', '#8c564b', '#e377c2', '#7f7f7f',
+  '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff',
+  '#ff00ff', '#c0c0c0', '#800000', '#808000', '#008000' 
+];
 
 const hasData = computed(() => {
   return ratePlanMetrics.value && ratePlanMetrics.value.length > 0
@@ -76,61 +83,43 @@ const hasData = computed(() => {
 const fetchRatePlanMetrics = async (page) => {
   loading.value = true
   try {
-    const response = await api.get(`/api/admin/rateplans/metrics?page=${page-1}&size=10`)
+    const response = await api.get(`/api/admin/rateplans/metrics`, {
+      params: {
+        page: page,
+        size: 5
+      },
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    })
     const data = response.data
 
-    // 실제 데이터가 없거나 item이 비어있으면 더미 데이터 사용
-    let items = data.item && data.item.length > 0 ? data.item : [
-      { planName: '요금제A', popularity: 100 },
-      { planName: '요금제B', popularity: 80 },
-      { planName: '요금제C', popularity: 60 },
-      { planName: '요금제D', popularity: 40 },
-      { planName: '요금제E', popularity: 20 },
-      { planName: '요금제F', popularity: 90 },
-      { planName: '요금제G', popularity: 70 },
-      { planName: '요금제H', popularity: 50 },
-      { planName: '요금제I', popularity: 30 },
-      { planName: '요금제J', popularity: 10 }
-    ]
-    ratePlanMetrics.value = items
+    ratePlanMetrics.value = data.item || []
     
-    // 페이지네이션 상태 업데이트
-    hasPrevious.value = page > 1
-    hasNext.value = true
-    currentPage.value = page
+    hasPrevious.value = data.hasPrevious
+    hasNext.value = data.hasNext
+    currentPage.value = data.page
 
-    console.log('Page:', page, 'HasPrevious:', hasPrevious.value, 'HasNext:', hasNext.value)
   } catch (error) {
-    // 에러 시에도 더미 데이터 사용
-    ratePlanMetrics.value = [
-      { planName: '요금제A', popularity: 100 },
-      { planName: '요금제B', popularity: 80 },
-      { planName: '요금제C', popularity: 60 },
-      { planName: '요금제D', popularity: 40 },
-      { planName: '요금제E', popularity: 20 },
-      { planName: '요금제F', popularity: 90 },
-      { planName: '요금제G', popularity: 70 },
-      { planName: '요금제H', popularity: 50 },
-      { planName: '요금제I', popularity: 30 },
-      { planName: '요금제J', popularity: 10 }
-    ]
-    hasPrevious.value = page > 1
-    hasNext.value = true
-    currentPage.value = page
-    console.error(error)
+    ratePlanMetrics.value = []
+    hasPrevious.value = false
+    hasNext.value = false
+    currentPage.value = 1
   } finally {
     loading.value = false
   }
 }
 
 const fetchPreviousPage = () => {
-  if (currentPage.value > 1) {
+  if (hasPrevious.value) {
     fetchRatePlanMetrics(currentPage.value - 1)
   }
 }
 
 const fetchNextPage = () => {
-  fetchRatePlanMetrics(currentPage.value + 1)
+  if (hasNext.value) {
+    fetchRatePlanMetrics(currentPage.value + 1)
+  }
 }
 
 function onChartMouseMove(e) {
@@ -150,61 +139,73 @@ onMounted(() => {
   fetchRatePlanMetrics(1)
 })
 
-const chartData = ref({
-  labels: [],
-  datasets: [
-    {
-      label: '요금제 인기도',
-      backgroundColor: '#F0E180',
-      data: [],
-      borderWidth: 1,
-      borderColor: '#F0E180'
-    }
-  ]
+const chartData = computed(() => {
+  const datasets = ratePlanMetrics.value.map((item, index) => {
+    const color = colors[index % colors.length];
+    return {
+      label: item.planName,
+      data: [item.popularity === 0 ? 0.1 : item.popularity],
+      backgroundColor: color,
+      borderColor: color,
+      borderWidth: 1
+    };
+  });
+
+  return {
+    labels: ['요금제 인기도'],
+    datasets: datasets
+  };
 })
 
 const chartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: true,
-      position: 'top'
-    },
-    title: {
-      display: true,
-      text: '요금제별 인기도',
-      font: {
-        size: 16
-      }
-    }
-  },
   scales: {
     y: {
       beginAtZero: true,
-      max: 100,
-      ticks: {
-        stepSize: 20
-      }
+      title: {
+        display: true,
+        text: '인기도'
+      },
+      ticks: {}
     },
     x: {
-      ticks: {
-        maxRotation: 45,
-        minRotation: 45
+      display: false,
+      title: {
+        display: false,
+        text: ''
       }
+    }
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'right',
+      labels: {
+        boxWidth: 10,
+        boxHeight: 10
+      }
+    },
+    title: {
+      display: true,
+      text: '요금제별 인기도'
     }
   }
 })
 
-// ratePlanMetrics가 변경될 때마다 차트 데이터 및 y축 옵션 업데이트
 watch(ratePlanMetrics, (newMetrics) => {
   if (newMetrics && newMetrics.length > 0) {
-    chartData.value.labels = newMetrics.map(item => item.planName)
-    chartData.value.datasets[0].data = newMetrics.map(item => item.popularity)
-    
     const max = Math.max(...newMetrics.map(item => item.popularity))
-    chartOptions.value.scales.y.max = Math.ceil(max * 1.1)
-    chartOptions.value.scales.y.ticks.stepSize = Math.ceil(max / 5)
+    if (max === 0) {
+      chartOptions.value.scales.y.max = 10
+      chartOptions.value.scales.y.ticks.stepSize = 2
+    } else {
+      chartOptions.value.scales.y.max = Math.ceil(max * 1.1)
+      chartOptions.value.scales.y.ticks.stepSize = Math.ceil(max / 5)
+    }
+  } else {
+    chartOptions.value.scales.y.max = 10;
+    chartOptions.value.scales.y.ticks.stepSize = 2;
   }
 }, { immediate: true })
 </script>
