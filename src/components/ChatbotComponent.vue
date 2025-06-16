@@ -24,10 +24,16 @@
           {{ msg.content }}
         </div>
         <div class="chatbot-msg bot-msg">
-          <button @click="emit('review')" class="chatbot-review-btn">
+          <button @click="showReviewModal = true" class="chatbot-review-btn">
             챗봇 리뷰 작성하기
           </button>
         </div>
+
+        <ChatbotReviewModal
+          v-if="showReviewModal"
+          @close="showReviewModal = false"
+          @submit="handleReviewSubmit"
+        />
       </template>
     </div>
     <div class="chatbot-input">
@@ -46,10 +52,17 @@
 
 <script setup>
 import { ref, defineEmits, watch, defineProps, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import api from '@/api/axiosInstance'
+import api from '@/api/axiosInstance';
+import ChatbotReviewModal from '@/components/ChatbotReviewModal.vue';
 
-const emit = defineEmits(['close', 'review']);
+const emit = defineEmits(['close']);
 const props = defineProps({ openTrigger: Boolean });
+
+const showReviewModal = ref(false);
+const handleReviewSubmit = (review) => {
+  console.log('리뷰 제출됨:', review);
+  // TODO: API로 리뷰 전송
+};
 
 const userInput = ref('');
 const pastMessages = ref([]);
