@@ -5,25 +5,46 @@
       <button class="chatbot-close" @click="emit('close')">✕</button>
     </div>
     <div class="chatbot-messages">
-      <p v-if="loading" class="chatbot-msg">로딩 중...</p>
-      <p v-else-if="errorMsg" class="chatbot-msg bot-msg">{{ errorMsg }}</p>
+      <p v-if="errorMsg" class="chatbot-msg bot-msg">{{ errorMsg }}</p>
       <template v-else>
         <div
           v-for="(msg, idx) in pastMessages"
           :key="msg.messageId || 'past-' + idx"
           :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']"
         >
-          {{ msg.content }}
+          <div v-if="msg.isLoading" v-html="msg.content"></div>
+          <div v-else>{{ msg.content }}</div>
         </div>
-        <p class="chatbot-msg bot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
+        <p v-if="!loading" class="chatbot-msg bot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
         <div
           v-for="(msg, idx) in currentMessages"
           :key="'current-' + idx"
           :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']"
         >
-          {{ msg.content }}
+          <div v-if="msg.isLoading" v-html="msg.content"></div>
+          <div v-else-if="msg.isRecommendation">
+            <div>{{ msg.content }}</div>
+            <div v-if="msg.recommendedPlans && msg.recommendedPlans.length > 0" class="recommendation-plans">
+              <div 
+                v-for="plan in msg.recommendedPlans" 
+                :key="plan.aPlanID || plan.bPlanID"
+                class="plan-card"
+                @click="handlePlanClick(plan)"
+              >
+                <div class="plan-name">{{ plan.name }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-else>{{ msg.content }}</div>
         </div>
-        <div class="chatbot-msg bot-msg">
+        <p v-if="loading" class="chatbot-msg bot-msg loading-bubble">
+          <span class="loading-dots">
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+          </span>
+        </p>
+        <div v-if="!loading && answerType === 'RECOMMEND'" class="chatbot-msg bot-msg">
           <button @click="showReviewModal = true" class="chatbot-review-btn">
             챗봇 리뷰 작성하기
           </button>
@@ -59,6 +80,7 @@ const emit = defineEmits(['close']);
 const props = defineProps({ openTrigger: Boolean });
 
 const showReviewModal = ref(false);
+const answerType = ref('');
 const handleReviewSubmit = (review) => {
   console.log('리뷰 제출됨:', review);
   // TODO: API로 리뷰 전송
@@ -77,6 +99,20 @@ const errorMsg = ref('');
 
 function getAccessToken() {
   return localStorage.getItem('accessToken');
+}
+
+function processRecommendationMessage(content) {
+  // [[RECOMMENDATION_LIST]]를 추천 요금제 리스트로 대체
+  return content.replace('[[RECOMMENDATION_LIST]]', '');
+}
+
+function handlePlanClick(plan) {
+  // 요금제 ID 매핑 (aPlanID 또는 bPlanID를 rateplanId로 사용)
+  const rateplanId = plan.aPlanID || plan.bPlanID;
+  
+  // PlanDetailPage로 이동
+  // Vue Router를 사용한다고 가정
+  window.location.href = `/plan-detail/${rateplanId}`;
 }
 
 function scrollToBottom() {
@@ -131,9 +167,10 @@ async function openChatbot() {
     const accessToken = getAccessToken();
     const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
     const { data: room } = await api.post('/api/chats/rooms', {}, { headers }); 
-    console.log(room)
+    
     chatRoomId.value = room.chatRoomId;
     isAnonymous.value = room.isAnonymous;
+    answerType.value = room.answerType || '';
 
     if (!room.isAnonymous) {
       const { data: messagesPage } = await api.get(
@@ -158,12 +195,72 @@ watch(() => props.openTrigger, (val) => {
   if (val) openChatbot();
 });
 
-function sendMessage() {
-  if (!userInput.value.trim()) return;
-  currentMessages.value.push({ content: userInput.value, owner: true });
+const sendMessage = async () => {
+  if (!userInput.value.trim() || loading.value || !chatRoomId.value) return;
+
+  const message = userInput.value.trim();
   userInput.value = '';
-  scrollToBottom();
-}
+  loading.value = true;
+
+  try {
+    const accessToken = getAccessToken();
+    const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+    // 사용자 메시지를 먼저 표시
+    currentMessages.value.push({
+      content: message,
+      owner: true,
+      messageId: null
+    });
+
+    // 스크롤을 최하단으로 이동
+    await nextTick();
+    scrollToBottom();
+
+    const { data: response } = await api.post('/api/chats/message', {
+      content: message,
+      chatRoomId: chatRoomId.value
+    }, { headers });
+
+    // 추천 응답 처리
+    let processedContent = response.answer;
+    let currentRecommendedPlans = [];
+    
+    if (response.answerType === 'RECOMMEND' && response.recommandPlans) {
+      processedContent = processRecommendationMessage(response.answer);
+      currentRecommendedPlans = response.recommandPlans;
+    }
+
+    // 봇 응답 메시지 추가
+    currentMessages.value.push({
+      content: processedContent,
+      owner: false,
+      messageId: response.messageId,
+      isLoading: false,
+      isRecommendation: response.answerType === 'RECOMMEND',
+      recommendedPlans: currentRecommendedPlans
+    });
+
+    // 스크롤을 최하단으로 이동
+    await nextTick();
+    scrollToBottom();
+  } catch (error) {
+    console.error('메시지 전송 중 오류 발생:', error);
+    const errorMessage = error.response?.data?.message || '메시지 전송에 실패했습니다. 다시 시도해주세요.';
+    
+    currentMessages.value.push({
+      content: errorMessage,
+      owner: false,
+      messageId: null,
+      isLoading: false
+    });
+    
+    await nextTick();
+    scrollToBottom();
+  } finally {
+    loading.value = false;
+  }
+};
 
 function onScroll(e) {
   if (e.target.scrollTop === 0) {
@@ -246,6 +343,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 8px rgba(160,89,198,0.07);
   margin-bottom: 2px;
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .user-msg {
@@ -262,6 +360,8 @@ onBeforeUnmount(() => {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 18px;
   border: 1px solid #f3e6f9;
+  white-space: pre-wrap;
+  text-align: left;
 }
 
 .chatbot-review-btn {
@@ -279,6 +379,67 @@ onBeforeUnmount(() => {
 }
 .chatbot-review-btn:hover {
   background-color: #e0186f;
+}
+
+.loading-dots {
+  display: inline-block;
+  font-size: 3em;
+}
+
+.loading-dots span {
+  animation: cumulative-blink 1.5s infinite step-start;
+  background: linear-gradient(45deg, #e0186f, #ff8a00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes cumulative-blink {
+  0%, 20% { opacity: 0; }
+  40% { opacity: 1; }
+  60% { opacity: 1; }
+  80%, 100% { opacity: 1; }
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.loading-bubble {
+  padding: 6px 12px !important;
+  line-height: 1 !important;
+  min-height: auto !important;
+}
+
+.recommendation-plans {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plan-card {
+  background: linear-gradient(45deg, #fa3d8f, #ff6bb3);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(250, 61, 143, 0.2);
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(250, 61, 143, 0.3);
+}
+
+.plan-name {
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
 }
 
 .chatbot-input {
