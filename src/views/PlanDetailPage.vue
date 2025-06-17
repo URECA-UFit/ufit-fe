@@ -30,19 +30,17 @@
       </div>
       <div class="plan-card">
         <div class="plan-card-title">기본혜택</div>
-        <div class="plan-card-content">{{ plan.basicBenefit || '-' }}</div>
+        <div class="plan-card-content">{{ plan.basicBenefit?.basic_benefit || '-' }}</div>
       </div>
     </div>
     <!-- 하단 회색 영역 -->
     <div class="plan-detail-bottom"></div>
-    <div class="plan-detail-bottom-title">기본 혜택</div>
     <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
     <Chatbot
       v-if="showChatbot"
-      :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
       @review="goToReviewPage"
     />
@@ -79,14 +77,9 @@ const examplePlan = {
 const plan = ref({ ...examplePlan });
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
-const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
-  if (showChatbot.value) {
-    chatbotOpenTrigger.value = false;
-    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
-  }
 };
 
 const goToReviewPage = () => {
@@ -130,7 +123,7 @@ onMounted(async () => {
   font-family: "Pretendard", sans-serif;
 }
 .plan-detail-pink {
-  position: absolute;
+  position: absolute;               
   width: 100%;
   height: 60vh;
   left: 0;
@@ -227,15 +220,6 @@ onMounted(async () => {
   min-height: 180px;
   background: rgba(217, 217, 217, 0.4);
   z-index: 1;
-}
-.plan-detail-bottom-title {
-  position: absolute;
-  left: 7vw;
-  bottom: 7vh;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #000;
-  z-index: 2;
 }
 /* 챗봇/문어 버튼 스타일 */
 .floating-action-button {

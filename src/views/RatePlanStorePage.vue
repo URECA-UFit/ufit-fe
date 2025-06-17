@@ -46,6 +46,7 @@
       v-if="showChatbot"
       :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
+      @review="goToReviewPage"
     />
 
     <div class="pagination">
@@ -56,18 +57,25 @@
       </button>
       <p class="total-elements">총 {{ totalElements }}개</p>
     </div>
+    <ChatbotReviewModal
+      v-if="showReviewModal"
+      @close="showReviewModal = false"
+      @submit="handleReviewSubmit"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
+import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 import CommonHeader from "@/components/CommonHeader.vue";
 import axios from "axios";
 
 const router = useRouter();
 const showChatbot = ref(false);
+const showReviewModal = ref(false);
 const chatbotOpenTrigger = ref(false);
 const sortType = ref('PRICE_ASC'); // 기본 정렬 타입을 낮은 가격순으로 설정
 
@@ -77,6 +85,15 @@ const handleMascotClick = () => {
     chatbotOpenTrigger.value = false;
     setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
   }
+};
+
+const goToReviewPage = () => {
+  showReviewModal.value = true;
+};
+
+const handleReviewSubmit = (review) => {
+  console.log("리뷰 제출됨:", review);
+  // TODO: 실제 API로 리뷰 전송
 };
 
 const goToDetail = (rateplanId) => {
@@ -160,6 +177,12 @@ const sortByPrice = (type) => {
 };
 
 onMounted(fetchRatePlans);
+onActivated(() => {
+  // 페이지가 다시 활성화될 때 필요한 경우에만 데이터를 다시 불러옵니다
+  if (ratePlans.value.length === 0) {
+    fetchRatePlans();
+  }
+});
 </script>
 
 <style scoped>
