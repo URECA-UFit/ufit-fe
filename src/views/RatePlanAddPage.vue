@@ -26,27 +26,33 @@
         <div class="form-row">
           <div class="form-group">
             <label>사용 가능 데이터량<span class="required">*</span></label>
-            <input v-model="form.data" required />
+            <input v-model="form.data_allowance" required />
           </div>
           <div class="form-group">
             <label>사용 가능 통화량<span class="required">*</span></label>
-            <input v-model="form.voice" required />
+            <input v-model="form.voice_allowance" required />
           </div>
           <div class="form-group">
             <label>사용 가능 문자 메시지<span class="required">*</span></label>
-            <input v-model="form.sms" required />
+            <input v-model="form.sms_allowance" required />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group wide">
             <label>기본 혜택<span class="required">*</span></label>
-            <input v-model="form.benefit" required />
+            <input v-model="form.basic_benefit" required />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group wide">
-            <label>이외 설명<span class="required">*</span></label>
-            <textarea v-model="form.etc" rows="2" required />
+            <label>특별 혜택<span class="required">*</span></label>
+            <input v-model="form.special_benefit" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group wide">
+            <label>할인 혜택<span class="required">*</span></label>
+            <input v-model="form.discount_benefit" required />
           </div>
         </div>
         <div class="form-actions">
@@ -64,8 +70,13 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '@/api/axiosInstance'
 import CommonHeader from "@/components/CommonHeader.vue";
 import AdminMenuBar from '@/components/AdminMenuBar.vue';
+
+function getAccessToken() {
+    return localStorage.getItem('accessToken');
+}
 
 const router = useRouter();
 const form = ref({
@@ -73,17 +84,97 @@ const form = ref({
   summary: '',
   monthlyFee: '',
   discountFee: '',
-  data: '',
-  voice: '',
-  sms: '',
-  benefit: '',
-  etc: '',
+  data_allowance: '',
+  voice_allowance: '',
+  sms_allowance: '',
+  basic_benefit: '',
+  special_benefit: '',
+  discount_benefit: '',
 });
 
-const handleSubmit = () => {
-  // TODO: API 연동
-  alert('요금제가 생성되었습니다!');
-  router.push({ name: 'AdminRatePlanStorePage' });
+const handleSubmit = async () => {
+  try {
+    // 입력값 검증
+    if (!validateForm()) {
+      return;
+    }
+
+    // API 요청 데이터 구성
+    const requestData = {
+      planName: form.value.planName,
+      summary: form.value.summary,
+      monthlyFee: parseInt(form.value.monthlyFee),
+      discountFee: parseInt(form.value.discountFee),
+      data_allowance: form.value.data_allowance,
+      voice_allowance: form.value.voice_allowance,
+      sms_allowance: form.value.sms_allowance,
+      basic_benefit: {
+        basic_benefit: form.value.basic_benefit
+      },
+      special_benefit: {
+        special_benefit: form.value.special_benefit
+      },
+      discount_benefit: {
+        together: form.value.discount_benefit
+      }
+    };
+
+    const accessToken = getAccessToken();
+    // API 호출
+    const response = await api.post(`/api/admin/rateplans`, requestData, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (response.status === 201) {
+      alert('요금제가 성공적으로 생성되었습니다!');
+      router.push("/admin/rateplan/storage");
+    }
+  } catch (error) {
+    console.error('요금제 생성 중 오류 발생:', error);
+    if (error.response) {
+      // 서버에서 반환한 에러 메시지가 있는 경우
+      alert(`요금제 생성 실패: ${error.response.data.message || '알 수 없는 오류가 발생했습니다.'}`);
+    } else {
+      // 네트워크 오류 등 기타 에러
+      alert('요금제 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+  }
+};
+
+const validateForm = () => {
+  // 필수 입력값 검증
+  const requiredFields = [
+    { name: '요금제 이름', value: form.value.planName },
+    { name: '요약', value: form.value.summary },
+    { name: '요금제 금액', value: form.value.monthlyFee },
+    { name: '약정 할인 금액', value: form.value.discountFee },
+    { name: '사용 가능 데이터량', value: form.value.data_allowance },
+    { name: '사용 가능 통화량', value: form.value.voice_allowance },
+    { name: '사용 가능 문자 메시지', value: form.value.sms_allowance },
+    { name: '기본 혜택', value: form.value.basic_benefit },
+    { name: '특별 혜택', value: form.value.special_benefit },
+    { name: '할인 혜택', value: form.value.discount_benefit }
+  ];
+
+  for (const field of requiredFields) {
+    if (!field.value || field.value.trim() === '') {
+      alert(`${field.name}을(를) 입력해주세요.`);
+      return false;
+    }
+  }
+
+  // 금액 필드 숫자 검증
+  if (isNaN(parseInt(form.value.monthlyFee)) || isNaN(parseInt(form.value.discountFee))) {
+    alert('요금제 금액과 약정 할인 금액은 숫자로 입력해주세요.');
+    return false;
+  }
+
+  // 할인 금액이 기본 금액보다 큰 경우 검증
+  if (parseInt(form.value.discountFee) >= parseInt(form.value.monthlyFee)) {
+    alert('약정 할인 금액은 기본 요금제 금액보다 작아야 합니다.');
+    return false;
+  }
+
+  return true;
 };
 
 const handleCancel = () => {
