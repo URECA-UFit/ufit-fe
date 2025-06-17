@@ -31,22 +31,22 @@
 
 <script setup>
 import { ref, defineEmits, defineProps } from "vue";
-import api from '@/api/axiosInstance';
+import api from "@/api/axiosInstance";
 
 const emit = defineEmits(["close", "submit"]);
 const props = defineProps({
   chatRoomId: {
     type: Number,
-    required: true
+    required: true,
   },
   recommendationMessageId: {
     type: String,
-    required: true
+    required: true,
   },
   recommendPlans: {
     type: Object,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 });
 
 const rating = ref(5);
@@ -62,27 +62,39 @@ const submit = async () => {
     content: reviewText.value,
     recommendPlans: props.recommendPlans,
     chatRoomId: props.chatRoomId,
-    recommendation_message_id: props.recommendationMessageId
+    recommendationMessageId: props.recommendationMessageId,
   };
 
-  console.log('전송할 리뷰 데이터:', reviewData);
+  console.log("전송할 리뷰 데이터:", reviewData);
 
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
-    
-    // TODO: 실제 API 엔드포인트로 변경 필요
-    const response = await api.post('/api/chatbot-reviews', reviewData, { headers });
-    console.log('리뷰 전송 성공:', response.data);
-    
-    // 성공적으로 전송되었음을 부모에게 알림
+    const accessToken = localStorage.getItem("accessToken");
+    const headers = accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {};
+
+    const response = await api.post("/api/chats/review", reviewData, {
+      headers,
+    });
+    console.log("리뷰 전송 성공:", response.data);
+
     emit("submit", {
-    rating: rating.value,
-    review: reviewText.value,
-  });
+      rating: rating.value,
+      review: reviewText.value,
+    });
+    rating.value = 5;
+    reviewText.value = "";
+    emit("close");
   } catch (error) {
-    console.error('리뷰 전송 실패:', error);
-    // 실패해도 모달은 닫음 (실제 서비스에서는 에러 처리 필요)
+    console.error("리뷰 전송 실패:", error);
+
+    if (error.response && error.response.data) {
+      const errorMessage =
+        error.response.data.message || "알 수 없는 오류가 발생했습니다.";
+      alert(errorMessage);
+    } else {
+      alert("서버와의 통신 중 오류가 발생했습니다.");
+    }
   }
 
   rating.value = 5;
