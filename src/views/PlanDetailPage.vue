@@ -14,23 +14,23 @@
     <div class="plan-card-row">
       <div class="plan-card">
         <div class="plan-card-title">데이터</div>
-        <div class="plan-card-content">{{ plan.dataAllowance }}</div>
+        <div class="plan-card-content">{{ plan.dataAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">공유 데이터</div>
-        <div class="plan-card-content">{{ plan.shareData }}</div>
+        <div class="plan-card-content">{{ plan.shareData || plan.dataSharing || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">음성통화</div>
-        <div class="plan-card-content">{{ plan.voiceAllowance }}</div>
+        <div class="plan-card-content">{{ plan.voiceAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">문자메시지</div>
-        <div class="plan-card-content">{{ plan.smsAllowance }}</div>
+        <div class="plan-card-content">{{ plan.smsAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">기본혜택</div>
-        <div class="plan-card-content">{{ plan.basicBenefit }}</div>
+        <div class="plan-card-content">{{ plan.basicBenefit || '-' }}</div>
       </div>
     </div>
     <!-- 하단 회색 영역 -->
@@ -56,12 +56,12 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-// import { useRoute } from "vue-router";
-// import axios from "axios";
+import { useRoute } from "vue-router";
+import axios from "axios";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 
-// const route = useRoute();
+const route = useRoute();
 
 // 예시 하드코딩 데이터
 const examplePlan = {
@@ -102,23 +102,20 @@ const formatCurrency = (amount) => {
   return amount ? amount.toLocaleString("ko-KR") : "-";
 };
 
-// onMounted(async () => {
-//   try {
-//     const rateplanId = route.params.rateplanId
-//     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
-//     // 실제 API 연동
-//     const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
-//     console.log('API response:', data);
-//     plan.value = data
-//   } catch (e) {
-//     console.error('API 오류:', e)
-//     // 실패 시 하드코딩 데이터 사용
-//     plan.value = { ...examplePlan }
-//   }
-// })
-
 onMounted(async () => {
-  plan.value = { ...examplePlan };
+  try {
+    const rateplanId = route.params.rateplanId
+    console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
+    console.log('API 데이터 호출 시도 중 (PlanDetailPage):', `/api/rateplans/storages/${rateplanId}`);
+    // 실제 API 연동
+    const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
+    console.log('API response:', data);
+    plan.value = data
+  } catch (e) {
+    console.error('API 오류:', e)
+    // 실패 시 하드코딩 데이터 사용
+    plan.value = { ...examplePlan }
+  }
 });
 </script>
 
