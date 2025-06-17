@@ -2,12 +2,21 @@
   <div class="rate-plan-list-container">
     <CommonHeader title="5G/LTE 요금제 목록" />
 
+    <div class="sort-buttons">
+      <button @click="sortByPrice('PRICE_ASC')" :class="{ 'active': sortType === 'PRICE_ASC' }">
+        낮은 가격순
+      </button>
+      <button @click="sortByPrice('PRICE_DESC')" :class="{ 'active': sortType === 'PRICE_DESC' }">
+        높은 가격순
+      </button>
+    </div>
+
     <div class="rate-plan-cards">
       <div
         v-for="plan in ratePlans"
-        :key="plan.ratePlanId"
+        :key="plan.id"
         class="rate-plan-card"
-        @click="goToDetail(plan.ratePlanId)"
+        @click="goToDetail(plan.id)"
       >
         <div class="card-header">
           <h2
@@ -62,11 +71,13 @@ import { useRouter } from "vue-router";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 import CommonHeader from "@/components/CommonHeader.vue";
+import axios from "axios";
 
 const router = useRouter();
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
 const chatbotOpenTrigger = ref(false);
+const sortType = ref('PRICE_ASC'); // 기본 정렬 타입을 낮은 가격순으로 설정
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
@@ -100,8 +111,22 @@ const formatCurrency = (amount) => {
 };
 
 const fetchRatePlans = async () => {
+  console.log('fetchRatePlans 호출됨. 현재 페이지:', currentPage.value, '현재 정렬 타입:', sortType.value);
   try {
-    /* API 완성되면 axios로 api가져올 것! */
+    const { data } = await axios.get('/api/rateplans/storages', {
+      params: {
+        page: currentPage.value - 1,
+        size: 5,
+        sortType: sortType.value // 백엔드 API에 맞게 sortType 파라미터 전달
+      }
+    });
+    ratePlans.value = data.content;
+    totalPages.value = data.totalPages;
+    totalElements.value = data.totalElements;
+    console.log('API 응답 데이터:', data.content);
+  } catch (e) {
+    console.error("API 오류:", e);
+    // API 실패 시 기존 더미 데이터 로직 유지 (선택 사항)
     const dummyData = {
       items: [
         {
@@ -124,29 +149,31 @@ const fetchRatePlans = async () => {
       totalPages: 3,
       totalElements: 30,
     };
-
     ratePlans.value = dummyData.items;
     currentPage.value = dummyData.page;
     totalPages.value = dummyData.totalPages;
     totalElements.value = dummyData.totalElements;
-  } catch (e) {
-    console.error("API 오류", e);
-    // 실제 API 연동 시 에러 처리 로직 추가
   }
 };
 
 const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
-    // fetchRatePlans(); // 실제 API 연동 시 주석 해제
+    fetchRatePlans();
   }
 };
 
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
-    // fetchRatePlans(); // 실제 API 연동 시 주석 해제
+    fetchRatePlans();
   }
+};
+
+const sortByPrice = (type) => {
+  sortType.value = type;
+  console.log('정렬 타입 변경:', sortType.value);
+  fetchRatePlans(); // 정렬 타입 변경 후 다시 데이터 불러오기
 };
 
 onMounted(fetchRatePlans);
@@ -471,5 +498,34 @@ onMounted(fetchRatePlans);
   font-size: 14px;
   color: #777;
   margin-left: 15px;
+}
+
+/* Sort Buttons Styles */
+.sort-buttons {
+  display: flex;
+  justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+  padding: 0 40px 20px; /* 카드 목록 위에 위치하도록 패딩 조정 */
+  gap: 10px; /* 버튼 간 간격 */
+}
+
+.sort-buttons button {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sort-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+.sort-buttons button.active {
+  background-color: #e0186f; /* 활성 버튼 색상 */
+  color: white;
+  border-color: #e0186f;
 }
 </style>
