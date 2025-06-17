@@ -30,9 +30,25 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from "vue";
+import { ref, defineEmits, defineProps } from "vue";
+import api from '@/api/axiosInstance';
 
 const emit = defineEmits(["close", "submit"]);
+const props = defineProps({
+  chatRoomId: {
+    type: Number,
+    required: true
+  },
+  recommendationMessageId: {
+    type: String,
+    required: true
+  },
+  recommendPlans: {
+    type: Object,
+    default: () => ({})
+  }
+});
+
 const rating = ref(5);
 const reviewText = ref("");
 
@@ -40,11 +56,35 @@ const close = () => {
   emit("close");
 };
 
-const submit = () => {
-  emit("submit", {
+const submit = async () => {
+  const reviewData = {
+    rating: rating.value,
+    content: reviewText.value,
+    recommendPlans: props.recommendPlans,
+    chatRoomId: props.chatRoomId,
+    recommendation_message_id: props.recommendationMessageId
+  };
+
+  console.log('전송할 리뷰 데이터:', reviewData);
+
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+    
+    // TODO: 실제 API 엔드포인트로 변경 필요
+    const response = await api.post('/api/chatbot-reviews', reviewData, { headers });
+    console.log('리뷰 전송 성공:', response.data);
+    
+    // 성공적으로 전송되었음을 부모에게 알림
+    emit("submit", {
     rating: rating.value,
     review: reviewText.value,
   });
+  } catch (error) {
+    console.error('리뷰 전송 실패:', error);
+    // 실패해도 모달은 닫음 (실제 서비스에서는 에러 처리 필요)
+  }
+
   rating.value = 5;
   reviewText.value = "";
   emit("close");
