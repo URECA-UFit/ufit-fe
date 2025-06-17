@@ -32,6 +32,7 @@
 <script setup>
 import { ref, defineEmits, defineProps } from "vue";
 import api from "@/api/axiosInstance";
+import Swal from "sweetalert2";
 
 const emit = defineEmits(["close", "submit"]);
 const props = defineProps({
@@ -84,6 +85,12 @@ const submit = async () => {
     });
     rating.value = 5;
     reviewText.value = "";
+    await Swal.fire({
+      icon: "success",
+      title: "리뷰가 성공적으로 제출되었습니다!",
+      confirmButtonText: "확인",
+      confirmButtonColor: "#ec008c",
+    });
     emit("close");
   } catch (error) {
     console.error("리뷰 전송 실패:", error);
@@ -91,7 +98,13 @@ const submit = async () => {
     if (error.response && error.response.data) {
       const errorMessage =
         error.response.data.message || "알 수 없는 오류가 발생했습니다.";
-      alert(errorMessage);
+      await Swal.fire({
+        icon: "error",
+        title: "리뷰 제출 실패",
+        text: errorMessage,
+        confirmButtonText: "확인",
+        confirmButtonColor: "#ec008c",
+      });
     } else {
       alert("서버와의 통신 중 오류가 발생했습니다.");
     }
