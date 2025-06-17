@@ -7,36 +7,61 @@
     <div class="chatbot-messages">
       <p v-if="errorMsg" class="chatbot-msg bot-msg">{{ errorMsg }}</p>
       <template v-else>
-        <div
-          v-for="(msg, idx) in pastMessages"
-          :key="msg.messageId || 'past-' + idx"
-          :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']"
-        >
-          <div v-if="msg.isLoading" v-html="msg.content"></div>
-          <div v-else>{{ msg.content }}</div>
-        </div>
-        <p v-if="!loading" class="chatbot-msg bot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
-        <div
-          v-for="(msg, idx) in currentMessages"
-          :key="'current-' + idx"
-          :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']"
-        >
-          <div v-if="msg.isLoading" v-html="msg.content"></div>
-          <div v-else-if="msg.isRecommendation">
-            <div>{{ msg.content }}</div>
-            <div v-if="msg.recommendedPlans && msg.recommendedPlans.length > 0" class="recommendation-plans">
-              <div 
-                v-for="plan in msg.recommendedPlans" 
-                :key="plan.aPlanID || plan.bPlanID"
-                class="plan-card"
-                @click="handlePlanClick(plan)"
-              >
-                <div class="plan-name">{{ plan.name }}</div>
-              </div>
+        <template v-for="(msg, idx) in pastMessages" :key="msg.messageId || 'past-' + idx">
+          <div :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']">
+            <div v-if="msg.isLoading" v-html="msg.content"></div>
+            <div v-else-if="msg.isRecommendation">
+              <template v-for="(part, partIndex) in splitContentWithRecommendations(msg.content)" :key="partIndex">
+                <div v-if="part.type === 'text'">{{ part.content }}</div>
+                <div v-else-if="part.type === 'recommendations'" class="recommendation-plans">
+                  <div 
+                    v-for="plan in msg.recommendedPlans" 
+                    :key="plan.planId"
+                    class="plan-card"
+                    @click="handlePlanClick(plan)"
+                  >
+                    <div class="plan-name">{{ plan.name }}</div>
+                  </div>
+                </div>
+              </template>
             </div>
+            <div v-else>{{ msg.content }}</div>
           </div>
-          <div v-else>{{ msg.content }}</div>
+          <!-- 과거 메시지 중 RECOMMEND 타입일 때 리뷰 버튼 말풍선 -->
+          <div v-if="!msg.owner && msg.isRecommendation" class="chatbot-msg bot-msg">
+            <button @click="openReviewModal(msg)" class="chatbot-review-btn">
+              챗봇 리뷰 작성하기
+            </button>
         </div>
+        </template>
+        <p v-if="!loading" class="chatbot-msg bot-msg">안녕하세요! 어떤 요금제를 찾고 계신가요?</p>
+        <template v-for="(msg, idx) in currentMessages" :key="'current-' + idx">
+          <div :class="['chatbot-msg', msg.owner ? 'user-msg' : 'bot-msg']">
+            <div v-if="msg.isLoading" v-html="msg.content"></div>
+            <div v-else-if="msg.isRecommendation">
+              <template v-for="(part, partIndex) in splitContentWithRecommendations(msg.content)" :key="partIndex">
+                <div v-if="part.type === 'text'">{{ part.content }}</div>
+                <div v-else-if="part.type === 'recommendations'" class="recommendation-plans">
+                  <div 
+                    v-for="plan in msg.recommendedPlans" 
+                    :key="plan.planId"
+                    class="plan-card"
+                    @click="handlePlanClick(plan)"
+                  >
+                    <div class="plan-name">{{ plan.name }}</div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div v-else>{{ msg.content }}</div>
+        </div>
+          <!-- 현재 메시지 중 RECOMMEND 타입일 때 리뷰 버튼 말풍선 -->
+          <div v-if="!msg.owner && msg.isRecommendation" class="chatbot-msg bot-msg">
+            <button @click="openReviewModal(msg)" class="chatbot-review-btn">
+            챗봇 리뷰 작성하기
+          </button>
+        </div>
+        </template>
         <p v-if="loading" class="chatbot-msg bot-msg loading-bubble">
           <span class="loading-dots">
             <span>.</span>
@@ -44,15 +69,14 @@
             <span>.</span>
           </span>
         </p>
-        <div v-if="!loading && answerType === 'RECOMMEND'" class="chatbot-msg bot-msg">
-          <button @click="showReviewModal = true" class="chatbot-review-btn">
-            챗봇 리뷰 작성하기
-          </button>
-        </div>
+
 
         <ChatbotReviewModal
           v-if="showReviewModal"
-          @close="showReviewModal = false"
+          :chatRoomId="chatRoomId"
+          :recommendationMessageId="getMessageId(currentReviewMessage)"
+          :recommendPlans="getRecommendPlans(currentReviewMessage)"
+          @close="closeReviewModal"
           @submit="handleReviewSubmit"
         />
       </template>
@@ -80,10 +104,52 @@ const emit = defineEmits(['close']);
 const props = defineProps({ openTrigger: Boolean });
 
 const showReviewModal = ref(false);
+const currentReviewMessage = ref(null);
 const answerType = ref('');
+
+const openReviewModal = (message) => {
+  // 특정 메시지를 currentReviewMessage에 설정
+  currentReviewMessage.value = message;
+  showReviewModal.value = true;
+};
+
+const closeReviewModal = () => {
+  showReviewModal.value = false;
+  currentReviewMessage.value = null;
+};
+
+const getRecommendPlans = (message) => {
+
+  if (!message || !message.recommendedPlans || message.recommendedPlans.length === 0) {
+    return {};
+  }
+  
+  const plans = {};
+  if (message.recommendedPlans[0]) {
+    // name 속성이 없으면 다른 속성들 확인
+    const firstPlan = message.recommendedPlans[0];
+    plans.aPlan = firstPlan.name || firstPlan.planName || firstPlan.title || '알 수 없는 요금제';
+  }
+  if (message.recommendedPlans[1]) {
+    // name 속성이 없으면 다른 속성들 확인
+    const secondPlan = message.recommendedPlans[1];
+    plans.bPlan = secondPlan.name || secondPlan.planName || secondPlan.title || '알 수 없는 요금제';
+  }
+
+  return plans;
+};
+
+const getMessageId = (message) => {
+  // 백엔드에서 String으로 넘어오므로 직접 반환
+  const result = message?.messageId || '';
+
+  return result;
+};
+
 const handleReviewSubmit = (review) => {
   console.log('리뷰 제출됨:', review);
-  // TODO: API로 리뷰 전송
+  // 리뷰 모달에서 API 호출이 완료되었으므로 여기서는 모달만 닫음
+  closeReviewModal();
 };
 
 const userInput = ref('');
@@ -101,18 +167,40 @@ function getAccessToken() {
   return localStorage.getItem('accessToken');
 }
 
-function processRecommendationMessage(content) {
-  // [[RECOMMENDATION_LIST]]를 추천 요금제 리스트로 대체
-  return content.replace('[[RECOMMENDATION_LIST]]', '');
+function splitContentWithRecommendations(content) {
+  if (!content || !content.includes('[[RECOMMENDATION_LIST]]')) {
+    return [{ type: 'text', content: content }];
+  }
+  
+  const parts = content.split('[[RECOMMENDATION_LIST]]');
+  const result = [];
+  
+  // 첫 번째 텍스트 부분
+  if (parts[0]) {
+    result.push({ type: 'text', content: parts[0] });
+  }
+  
+  // 추천 목록 자리
+  result.push({ type: 'recommendations' });
+  
+  // 마지막 텍스트 부분
+  if (parts[1]) {
+    result.push({ type: 'text', content: parts[1] });
+  }
+  
+  return result;
 }
 
 function handlePlanClick(plan) {
-  // 요금제 ID 매핑 (aPlanID 또는 bPlanID를 rateplanId로 사용)
-  const rateplanId = plan.aPlanID || plan.bPlanID;
+  // 요금제 ID를 사용하여 상세 페이지로 이동
+  const planId = plan.planId;
   
-  // PlanDetailPage로 이동
-  // Vue Router를 사용한다고 가정
-  window.location.href = `/plan-detail/${rateplanId}`;
+  if (planId) {
+    // PlanDetailPage로 이동
+    window.location.href = `/rateplan/storage/${planId}`;
+  } else {
+    console.error('planId가 없습니다:', plan);
+  }
 }
 
 function scrollToBottom() {
@@ -144,7 +232,21 @@ async function fetchMorePastMessages() {
     if (messagesPage.item && messagesPage.item.length > 0) {
       const box = document.querySelector('.chatbot-messages');
       const prevHeight = box ? box.scrollHeight : 0;
-      pastMessages.value = [...messagesPage.item.reverse(), ...pastMessages.value];
+      // 추가로 불러온 과거 메시지에도 recommendPlans 기반으로 추천 정보 추가
+      const processedMessages = messagesPage.item.map(msg => {
+        // recommendPlans의 첫 번째 요소의 planId가 빈 값이 아닐 때만 RECOMMEND로 판단
+        const hasValidRecommendation = msg.recommendPlans && 
+                                      msg.recommendPlans.length > 0 && 
+                                      msg.recommendPlans[0].planId && 
+                                      msg.recommendPlans[0].planId !== "";
+        
+        return {
+          ...msg,
+          isRecommendation: hasValidRecommendation,
+          recommendedPlans: hasValidRecommendation ? msg.recommendPlans : []
+        };
+      });
+      pastMessages.value = [...processedMessages.reverse(), ...pastMessages.value];
       scrollToPrev(prevHeight);
     }
     nextCursor.value = messagesPage.nextCursor;
@@ -178,7 +280,22 @@ async function openChatbot() {
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       if (messagesPage.item) {
-        pastMessages.value = [...messagesPage.item].reverse();
+        
+        const processedMessages = messagesPage.item.map(msg => {
+
+          // recommendPlans의 첫 번째 요소의 planId가 빈 값이 아닐 때만 RECOMMEND로 판단
+          const hasValidRecommendation = msg.recommendPlans && 
+                                        msg.recommendPlans.length > 0 && 
+                                        msg.recommendPlans[0].planId && 
+                                        msg.recommendPlans[0].planId !== "";
+          
+          return {
+            ...msg,
+            isRecommendation: hasValidRecommendation,
+            recommendedPlans: hasValidRecommendation ? msg.recommendPlans : []
+          };
+        });
+        pastMessages.value = [...processedMessages].reverse();
       }
       nextCursor.value = messagesPage.nextCursor;
       hasNext.value = messagesPage.hasNext;
@@ -215,30 +332,46 @@ const sendMessage = async () => {
 
     // 스크롤을 최하단으로 이동
     await nextTick();
-    scrollToBottom();
+  scrollToBottom();
 
     const { data: response } = await api.post('/api/chats/message', {
       content: message,
       chatRoomId: chatRoomId.value
     }, { headers });
 
-    // 추천 응답 처리
-    let processedContent = response.answer;
-    let currentRecommendedPlans = [];
-    
-    if (response.answerType === 'RECOMMEND' && response.recommandPlans) {
-      processedContent = processRecommendationMessage(response.answer);
-      currentRecommendedPlans = response.recommandPlans;
-    }
+    // API 응답값 로그 출력
+    console.log('===== 챗봇 메시지 API 응답 =====');
+    console.log('전체 응답:', response);
+    console.log('messageId:', response.messageId);
+    console.log('answer:', response.answer);
+    console.log('answerType:', response.answerType);
+    console.log('recommendPlans:', response.recommendPlans);
+    console.log('================================');
 
     // 봇 응답 메시지 추가
+    const hasValidRecommendation = response.answerType === 'RECOMMEND' && 
+                                   response.recommendPlans && 
+                                   response.recommendPlans.length > 0;
+
+    console.log('===== 새로운 메시지 처리 디버그 =====');
+    console.log('answerType === RECOMMEND:', response.answerType === 'RECOMMEND');
+    console.log('recommendPlans 존재:', !!response.recommendPlans);
+    console.log('recommendPlans 길이:', response.recommendPlans?.length);
+    if (response.recommendPlans && response.recommendPlans.length > 0) {
+      console.log('첫 번째 plan:', response.recommendPlans[0]);
+      console.log('첫 번째 plan의 planId:', response.recommendPlans[0]?.planId);
+    }
+    console.log('hasValidRecommendation:', hasValidRecommendation);
+    console.log('=======================================');
+
     currentMessages.value.push({
-      content: processedContent,
+      content: response.answer,
       owner: false,
       messageId: response.messageId,
       isLoading: false,
-      isRecommendation: response.answerType === 'RECOMMEND',
-      recommendedPlans: currentRecommendedPlans
+      isRecommendation: hasValidRecommendation,
+      recommendedPlans: hasValidRecommendation ? response.recommendPlans : [],
+      answerType: response.answerType
     });
 
     // 스크롤을 최하단으로 이동
