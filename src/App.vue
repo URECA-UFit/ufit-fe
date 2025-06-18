@@ -1,11 +1,14 @@
 <template>
-  <router-view />
+  <router-view v-slot="{ Component }">
+    <keep-alive>
+      <component :is="Component" v-if="$route.meta.keepAlive" />
+    </keep-alive>
+    <component :is="Component" v-if="!$route.meta.keepAlive" />
+  </router-view>
 </template>
 
-<script>
-export default {
-  name: 'App',
-}
+<script setup>
+// 기존 script 내용은 여기에 필요 없음
 </script>
 
 <style>

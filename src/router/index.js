@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 // 수정
-import LoginPage from "../views/LoginPage.vue";
-import DashBoardPage from "../views/DashBoardPage.vue";
-import RatePlanStorePage from "../views/RatePlanStorePage.vue";
-import ChatBotReviewPage from "../views/ChatBotReviewPage.vue";
-import PlanDetailPage from '../views/PlanDetailPage.vue'
-import AdminRatePlanStorePage from "../views/AdminRatePlanStorePage.vue"
-import RatePlanAddPage from "../views/RatePlanAddPage.vue"
+import LoginPage from "@/views/LoginPage.vue";
+import DashBoardPage from "@/views/DashBoardPage.vue";
+import ChatBotReviewPage from "@/views/ChatBotReviewPage.vue";
+import PlanDetailPage from "@/views/PlanDetailPage.vue"
+import AdminRatePlanStorePage from "@/views/AdminRatePlanStorePage.vue"
+import RatePlanAddPage from "@/views/RatePlanAddPage.vue"
 
 const routes = [
   { path: "/", redirect: "/login" },
@@ -14,7 +13,10 @@ const routes = [
   {
     path: "/rateplan/storage",
     name: "RatePlanStore",
-    component: RatePlanStorePage,
+    component: () => import("@/views/RatePlanStorePage.vue"),
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: "/rateplan/storage/:rateplanId",

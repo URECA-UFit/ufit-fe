@@ -30,19 +30,17 @@
       </div>
       <div class="plan-card">
         <div class="plan-card-title">기본혜택</div>
-        <div class="plan-card-content">{{ plan.basicBenefit || '-' }}</div>
+        <div class="plan-card-content">{{ plan.basicBenefit?.basic_benefit || '-' }}</div>
       </div>
     </div>
     <!-- 하단 회색 영역 -->
     <div class="plan-detail-bottom"></div>
-    <div class="plan-detail-bottom-title">기본 혜택</div>
     <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
     <Chatbot
       v-if="showChatbot"
-      :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
       @review="goToReviewPage"
     />
@@ -79,14 +77,9 @@ const examplePlan = {
 const plan = ref({ ...examplePlan });
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
-const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
-  if (showChatbot.value) {
-    chatbotOpenTrigger.value = false;
-    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
-  }
 };
 
 const goToReviewPage = () => {
@@ -130,18 +123,18 @@ onMounted(async () => {
   font-family: "Pretendard", sans-serif;
 }
 .plan-detail-pink {
-  position: absolute;
+  position: absolute;               
   width: 100%;
-  height: 60vh;
+  height: 70vh;
   left: 0;
   top: 0;
-  background: rgba(230, 2, 126, 0.7);
-  min-height: 350px;
+  background: linear-gradient(to bottom, rgba(255, 228, 225, 0.7), rgba(255, 192, 203, 0.7)); /* 더 연하고 입체적인 그라데이션 핑크 */
+  min-height: 400px;
 }
 .plan-detail-title {
   position: absolute;
   left: 6vw;
-  top: 9vh;
+  top: 12vh;
   font-size: 2.8rem;
   font-weight: 700;
   color: #000;
@@ -149,21 +142,21 @@ onMounted(async () => {
 .plan-detail-desc {
   position: absolute;
   left: 6vw;
-  top: 15vh;
+  top: 21vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-detail-line {
   position: absolute;
   left: 6vw;
-  top: 23vh;
+  top: 28vh;
   width: 88vw;
   border-bottom: 2px solid #797070;
 }
 .plan-detail-fee {
   position: absolute;
   right: 6vw;
-  top: 10vh;
+  top: 15vh;
   font-size: 2rem;
   font-weight: 700;
   color: #000;
@@ -171,14 +164,14 @@ onMounted(async () => {
 .plan-detail-discount {
   position: absolute;
   right: 6vw;
-  top: 15vh;
+  top: 20vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-card-row {
   position: absolute;
   left: 0;
-  top: 28vh;
+  top: 35vh;
   width: 100%;
   display: flex;
   justify-content: flex-start;
@@ -187,14 +180,14 @@ onMounted(async () => {
   padding-left: 6vw;
 }
 .plan-card {
-  background: #e6027e;
+  background: #FFF0F5; /* 그라데이션 없이 정말정말 연한 핑크 (LavenderBlush) */
   border-radius: 1.2rem;
   width: 13vw;
   min-width: 150px;
   max-width: 220px;
-  height: 22vh;
-  min-height: 140px;
-  max-height: 250px;
+  height: 25vh;
+  min-height: 160px;
+  max-height: 280px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -223,19 +216,10 @@ onMounted(async () => {
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 28vh;
-  min-height: 180px;
+  height: 15vh;
+  min-height: 100px;
   background: rgba(217, 217, 217, 0.4);
   z-index: 1;
-}
-.plan-detail-bottom-title {
-  position: absolute;
-  left: 7vw;
-  bottom: 7vh;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #000;
-  z-index: 2;
 }
 /* 챗봇/문어 버튼 스타일 */
 .floating-action-button {
