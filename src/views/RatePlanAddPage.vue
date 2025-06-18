@@ -385,4 +385,20 @@ textarea {
     gap: 18px;
   }
 }
+
+select {
+  border: 1.5px solid #bbb;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border 0.2s;
+  width: 100%;
+  height: 48px; /* 세로 길이 추가 */
+}
+
+select:focus {
+  border: 1.5px solid #c42a74;
+  outline: none;
+}
 </style>
