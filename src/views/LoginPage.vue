@@ -125,6 +125,12 @@ const handleLogin = async () => {
       const userRole = res.data.role;
       localStorage.setItem('userRole', userRole);
 
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'accessToken',
+        newValue: accessToken,
+        storageArea: localStorage
+      }));
+
       if (userRole === 'ADMIN') {
         router.push('/admin/dashboard'); // 관리자는 대시보드 페이지로 이동
       } else if (userRole === 'USER') {
