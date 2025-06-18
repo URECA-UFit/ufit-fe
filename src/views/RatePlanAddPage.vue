@@ -26,33 +26,33 @@
         <div class="form-row">
           <div class="form-group">
             <label>사용 가능 데이터량<span class="required">*</span></label>
-            <input v-model="form.data_allowance" required />
+            <input v-model="form.dataAllowance" required />
           </div>
           <div class="form-group">
             <label>사용 가능 통화량<span class="required">*</span></label>
-            <input v-model="form.voice_allowance" required />
+            <input v-model="form.voiceAllowance" required />
           </div>
           <div class="form-group">
             <label>사용 가능 문자 메시지<span class="required">*</span></label>
-            <input v-model="form.sms_allowance" required />
+            <input v-model="form.smsAllowance" required />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group wide">
             <label>기본 혜택<span class="required">*</span></label>
-            <input v-model="form.basic_benefit" required />
+            <input v-model="form.basicBenefit" required />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group wide">
             <label>특별 혜택<span class="required">*</span></label>
-            <input v-model="form.special_benefit" required />
+            <input v-model="form.specialBenefit" required />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group wide">
             <label>할인 혜택<span class="required">*</span></label>
-            <input v-model="form.discount_benefit" required />
+            <input v-model="form.discountBenefit" required />
           </div>
         </div>
         <div class="form-row">
