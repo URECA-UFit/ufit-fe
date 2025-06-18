@@ -71,7 +71,7 @@ import { useRouter } from "vue-router";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 import CommonHeader from "@/components/CommonHeader.vue";
-import axios from "axios";
+import api from '@/api/axiosInstance';
 
 const router = useRouter();
 const showChatbot = ref(false);
@@ -113,7 +113,7 @@ const formatCurrency = (amount) => {
 const fetchRatePlans = async () => {
   console.log('fetchRatePlans 호출됨. 현재 페이지:', currentPage.value, '현재 정렬 타입:', sortType.value);
   try {
-    const { data } = await axios.get('/api/rateplans/storages', {
+    const { data } = await api.get('/api/rateplans/storages', {
       params: {
         page: currentPage.value - 1,
         size: 5,
