@@ -336,7 +336,7 @@ const handleDeleteClick = async (ratePlanId) => {
     try {
       const accessToken = getAccessToken();
 
-      await api.post(`/api/admin/rateplans/delete/${ratePlanId}`, null, { 
+      await api.post(`/api/admin/rateplans/${ratePlanId}`, null, { 
         headers: { Authorization: `Bearer ${accessToken}` }}
       );
 

@@ -115,7 +115,7 @@ const handleSubmit = async () => {
         special_benefit: form.value.special_benefit
       },
       discount_benefit: {
-        together: form.value.discount_benefit
+        discount_benefit: form.value.discount_benefit
       }
     };
 
