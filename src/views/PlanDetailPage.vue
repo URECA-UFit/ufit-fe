@@ -17,10 +17,6 @@
         <div class="plan-card-content">{{ plan.dataAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
-        <div class="plan-card-title">공유 데이터</div>
-        <div class="plan-card-content">{{ plan.shareData || plan.dataSharing || '-' }}</div>
-      </div>
-      <div class="plan-card">
         <div class="plan-card-title">음성통화</div>
         <div class="plan-card-content">{{ plan.voiceAllowance || '-' }}</div>
       </div>
@@ -28,13 +24,22 @@
         <div class="plan-card-title">문자메시지</div>
         <div class="plan-card-content">{{ plan.smsAllowance || '-' }}</div>
       </div>
-      <div class="plan-card">
-        <div class="plan-card-title">기본혜택</div>
-        <div class="plan-card-content">{{ plan.basicBenefit?.basic_benefit || '-' }}</div>
+    </div>
+    <div class="plan-detail-bottom"></div>
+    <!-- 혜택 안내 영역을 페이지의 가장 마지막에 위치, 배경색을 흰색으로 변경 -->
+    <div class="plan-benefit-section">
+      <div class="benefit-title">혜택 안내</div>
+      <div class="benefit-list">
+        <div v-if="plan.basicBenefit?.basic_benefit" class="benefit-item">
+          <span class="benefit-label">기본혜택</span>
+          <span class="benefit-content">{{ plan.basicBenefit.basic_benefit }}</span>
+        </div>
+        <div v-if="plan.discountBenefit" class="benefit-item">
+          <span class="benefit-label">할인혜택</span>
+          <span class="benefit-content" v-html="parsedDiscountBenefit"></span>
+        </div>
       </div>
     </div>
-    <!-- 하단 회색 영역 -->
-    <div class="plan-detail-bottom"></div>
     <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
@@ -53,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
@@ -95,6 +100,25 @@ const formatCurrency = (amount) => {
   return amount ? amount.toLocaleString("ko-KR") : "-";
 };
 
+const parsedDiscountBenefit = computed(() => {
+  const raw = plan.value.discountBenefit;
+  if (!raw) return '';
+  // 객체로 오는 경우
+  if (typeof raw === 'object' && raw.discount_benefit) {
+    return raw.discount_benefit;
+  }
+  // 문자열로 오는 경우
+  try {
+    if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+      const obj = JSON.parse(raw);
+      return obj.discount_benefit || raw;
+    }
+    return raw;
+  } catch (e) {
+    return raw;
+  }
+});
+
 onMounted(async () => {
   try {
     const rateplanId = route.params.rateplanId
@@ -114,13 +138,14 @@ onMounted(async () => {
 
 <style scoped>
 .plan-detail-bg {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   position: absolute;
   left: 0;
   top: 0;
   background: #fff;
   font-family: "Pretendard", sans-serif;
+  overflow-x: hidden;
 }
 .plan-detail-pink {
   position: absolute;               
@@ -133,7 +158,7 @@ onMounted(async () => {
 }
 .plan-detail-title {
   position: absolute;
-  left: 6vw;
+  left: 12vw;
   top: 12vh;
   font-size: 2.8rem;
   font-weight: 700;
@@ -141,21 +166,21 @@ onMounted(async () => {
 }
 .plan-detail-desc {
   position: absolute;
-  left: 6vw;
+  left: 12vw;
   top: 21vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-detail-line {
   position: absolute;
-  left: 6vw;
+  left: 12vw;
   top: 28vh;
-  width: 88vw;
+  width: 76vw;
   border-bottom: 2px solid #797070;
 }
 .plan-detail-fee {
   position: absolute;
-  right: 6vw;
+  right: 12vw;
   top: 15vh;
   font-size: 2rem;
   font-weight: 700;
@@ -163,21 +188,21 @@ onMounted(async () => {
 }
 .plan-detail-discount {
   position: absolute;
-  right: 6vw;
+  right: 12vw;
   top: 20vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-card-row {
   position: absolute;
-  left: 0;
   top: 35vh;
-  width: 100%;
+  width: auto;
+  margin-left: 12vw;
   display: flex;
   justify-content: flex-start;
   gap: 2vw;
   z-index: 2;
-  padding-left: 6vw;
+  padding-left: 0;
 }
 .plan-card {
   background: #FFF0F5; /* 그라데이션 없이 정말정말 연한 핑크 (LavenderBlush) */
@@ -185,9 +210,9 @@ onMounted(async () => {
   width: 13vw;
   min-width: 150px;
   max-width: 220px;
-  height: 25vh;
-  min-height: 160px;
-  max-height: 280px;
+  height: 21vh;
+  min-height: 130px;
+  max-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -209,7 +234,11 @@ onMounted(async () => {
   font-size: 1.3rem;
   font-weight: 700;
   color: #000;
-  word-break: keep-all;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  max-height: 100%;
 }
 .plan-detail-bottom {
   position: absolute;
@@ -218,7 +247,7 @@ onMounted(async () => {
   width: 100%;
   height: 15vh;
   min-height: 100px;
-  background: rgba(217, 217, 217, 0.4);
+  background: #fff;
   z-index: 1;
 }
 /* 챗봇/문어 버튼 스타일 */
@@ -337,5 +366,46 @@ onMounted(async () => {
     transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+.plan-benefit-section {
+  width: 90vw;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: absolute;
+  bottom: 3vh;
+  z-index: 10;
+}
+.benefit-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  color: #e0186f;
+}
+.benefit-list {
+  width: 100%;
+}
+.benefit-item {
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+}
+.benefit-label {
+  font-weight: 600;
+  color: #e0186f;
+  margin-right: 1rem;
+  min-width: 80px;
+}
+.benefit-content {
+  color: #222;
+  font-size: 1.1rem;
+  word-break: break-word;
 }
 </style>
