@@ -64,7 +64,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import axios from "axios";
+import api from "@/api/axiosInstance";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 
@@ -146,7 +146,7 @@ onMounted(async () => {
     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
     console.log('API 데이터 호출 시도 중 (PlanDetailPage):', `/api/rateplans/storages/${rateplanId}`);
     // 실제 API 연동
-    const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
+    const { data } = await api.get(`/api/rateplans/storages/${rateplanId}`)
     console.log('API response:', data);
     plan.value = data
   } catch (e) {
