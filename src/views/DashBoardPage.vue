@@ -1,9 +1,7 @@
 <template>
   <div>
     <AdminMenuBar />
-    <header class="list-header">
-      <h1>요금제 대시보드</h1>
-    </header>
+    <CommonHeader title="요금제 대시보드" />
     <div v-if="loading">로딩 중...</div>
     <div v-else-if="!hasData" class="no-data">
       <p>데이터가 없습니다.</p>
@@ -59,6 +57,7 @@ import {
 } from 'chart.js'
 import api from '@/api/axiosInstance'
 import AdminMenuBar from '@/components/AdminMenuBar.vue'
+import CommonHeader from '@/components/CommonHeader.vue'
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
