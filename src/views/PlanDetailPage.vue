@@ -27,14 +27,18 @@
     </div>
     <div class="plan-detail-bottom"></div>
     <!-- 혜택 안내 영역을 페이지의 가장 마지막에 위치, 배경색을 흰색으로 변경 -->
-    <div class="plan-benefit-section">
+    <div v-if="showBenefitSection" class="plan-benefit-section">
       <div class="benefit-title">혜택 안내</div>
       <div class="benefit-list">
-        <div v-if="plan.basicBenefit?.basic_benefit" class="benefit-item">
+        <div v-if="hasBasicBenefit" class="benefit-item">
           <span class="benefit-label">기본혜택</span>
           <span class="benefit-content">{{ plan.basicBenefit.basic_benefit }}</span>
         </div>
-        <div v-if="plan.discountBenefit" class="benefit-item">
+        <div v-if="hasSpecialBenefit" class="benefit-item">
+          <span class="benefit-label">특별혜택</span>
+          <span class="benefit-content" v-html="parsedSpecialBenefit"></span>
+        </div>
+        <div v-if="hasDiscountBenefit" class="benefit-item">
           <span class="benefit-label">할인혜택</span>
           <span class="benefit-content" v-html="parsedDiscountBenefit"></span>
         </div>
@@ -60,7 +64,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import axios from "axios";
+import api from "@/api/axiosInstance";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 
@@ -103,25 +107,39 @@ const formatCurrency = (amount) => {
 const parsedDiscountBenefit = computed(() => {
   const raw = plan.value.discountBenefit;
   if (!raw) return '';
-  let text = '';
-  // 객체로 오는 경우
-  if (typeof raw === 'object' && raw.discount_benefit) {
-    text = raw.discount_benefit;
-  } else {
-    try {
-      if (typeof raw === 'string' && raw.trim().startsWith('{')) {
-        const obj = JSON.parse(raw);
-        text = obj.discount_benefit || raw;
-      } else {
-        text = raw;
-      }
-    } catch (e) {
-      text = raw;
-    }
+  
+  if (typeof raw === 'string') {
+    return raw.split('/').map(s => s.trim()).join('<br/>');
   }
-  // '/' 기준으로 줄바꿈
-  return text.split('/').map(s => s.trim()).join('<br/>');
+  // discountBenefit이 객체이고, discount_benefit 키가 문자열이면 출력
+  if (typeof raw === 'object' && typeof raw.discount_benefit === 'string') {
+    return raw.discount_benefit.split('/').map(s => s.trim()).join('<br/>');
+  }
+  return '';
 });
+
+const parsedSpecialBenefit = computed(() => {
+  const raw = plan.value.specialBenefit;
+  if (!raw || typeof raw.special_benefit !== 'string') return '';
+  return raw.special_benefit.split('/').map(s => s.trim()).join('<br/>');
+});
+
+const hasBasicBenefit = computed(() => {
+  const raw = plan.value.basicBenefit;
+  return raw && typeof raw.basic_benefit === 'string' && raw.basic_benefit.trim() !== '';
+});
+const hasSpecialBenefit = computed(() => {
+  const raw = plan.value.specialBenefit;
+  return raw && typeof raw.special_benefit === 'string' && raw.special_benefit.trim() !== '';
+});
+const hasDiscountBenefit = computed(() => {
+  const raw = plan.value.discountBenefit;
+  if (!raw) return false;
+  if (typeof raw === 'string') return raw.trim() !== '';
+  if (typeof raw === 'object' && typeof raw.discount_benefit === 'string') return raw.discount_benefit.trim() !== '';
+  return false;
+});
+const showBenefitSection = computed(() => hasBasicBenefit.value || hasSpecialBenefit.value || hasDiscountBenefit.value);
 
 onMounted(async () => {
   try {
@@ -129,7 +147,7 @@ onMounted(async () => {
     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
     console.log('API 데이터 호출 시도 중 (PlanDetailPage):', `/api/rateplans/storages/${rateplanId}`);
     // 실제 API 연동
-    const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
+    const { data } = await api.get(`/api/rateplans/storages/${rateplanId}`)
     console.log('API response:', data);
     plan.value = data
   } catch (e) {
@@ -214,8 +232,9 @@ onMounted(async () => {
   width: 13vw;
   min-width: 150px;
   max-width: 220px;
-  height: 21vh;
-  min-height: 130px;
+  height: 13vw;
+  min-height: 150px;
+
   max-height: 220px;
   display: flex;
   flex-direction: column;
@@ -379,13 +398,17 @@ onMounted(async () => {
   background: #fff;
   border-radius: 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  padding: 2rem 2.5rem;
+  padding: 1.2rem 1.5rem;
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   position: absolute;
   bottom: 3vh;
   z-index: 10;
+  max-height: 20vh;
+  overflow-y: auto;
+
 }
 .benefit-title {
   font-size: 1.4rem;
