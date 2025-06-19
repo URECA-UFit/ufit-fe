@@ -30,9 +30,26 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from "vue";
+import { ref, defineEmits, defineProps } from "vue";
+import api from "@/api/axiosInstance";
+import Swal from "sweetalert2";
 
 const emit = defineEmits(["close", "submit"]);
+const props = defineProps({
+  chatRoomId: {
+    type: Number,
+    required: true,
+  },
+  recommendationMessageId: {
+    type: String,
+    required: true,
+  },
+  recommendPlans: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
 const rating = ref(5);
 const reviewText = ref("");
 
@@ -40,11 +57,59 @@ const close = () => {
   emit("close");
 };
 
-const submit = () => {
-  emit("submit", {
+const submit = async () => {
+  const reviewData = {
     rating: rating.value,
-    review: reviewText.value,
-  });
+    content: reviewText.value,
+    recommendPlans: props.recommendPlans,
+    chatRoomId: props.chatRoomId,
+    recommendationMessageId: props.recommendationMessageId,
+  };
+
+  console.log("전송할 리뷰 데이터:", reviewData);
+
+  try {
+    const accessToken = localStorage.getItem("accessToken");
+    const headers = accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {};
+
+    const response = await api.post("/api/chats/review", reviewData, {
+      headers,
+    });
+    console.log("리뷰 전송 성공:", response.data);
+
+    emit("submit", {
+      rating: rating.value,
+      review: reviewText.value,
+    });
+    rating.value = 5;
+    reviewText.value = "";
+    await Swal.fire({
+      icon: "success",
+      title: "리뷰가 성공적으로 제출되었습니다!",
+      confirmButtonText: "확인",
+      confirmButtonColor: "#ec008c",
+    });
+    emit("close");
+  } catch (error) {
+    console.error("리뷰 전송 실패:", error);
+
+    if (error.response && error.response.data) {
+      const errorMessage =
+        error.response.data.message || "알 수 없는 오류가 발생했습니다.";
+      await Swal.fire({
+        icon: "error",
+        title: "리뷰 제출 실패",
+        text: errorMessage,
+        confirmButtonText: "확인",
+        confirmButtonColor: "#ec008c",
+      });
+    } else {
+      alert("서버와의 통신 중 오류가 발생했습니다.");
+    }
+  }
+
   rating.value = 5;
   reviewText.value = "";
   emit("close");

@@ -18,6 +18,16 @@ function addRefreshSubscriber(callback) {
   console.log('[토큰 재발급] 구독 요청 추가')
   refreshSubscribers.push(callback)
 }
+
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   res => res,
   async error => {

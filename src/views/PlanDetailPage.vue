@@ -14,35 +14,38 @@
     <div class="plan-card-row">
       <div class="plan-card">
         <div class="plan-card-title">데이터</div>
-        <div class="plan-card-content">{{ plan.dataAllowance }}</div>
-      </div>
-      <div class="plan-card">
-        <div class="plan-card-title">공유 데이터</div>
-        <div class="plan-card-content">{{ plan.shareData }}</div>
+        <div class="plan-card-content">{{ plan.dataAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">음성통화</div>
-        <div class="plan-card-content">{{ plan.voiceAllowance }}</div>
+        <div class="plan-card-content">{{ plan.voiceAllowance || '-' }}</div>
       </div>
       <div class="plan-card">
         <div class="plan-card-title">문자메시지</div>
-        <div class="plan-card-content">{{ plan.smsAllowance }}</div>
-      </div>
-      <div class="plan-card">
-        <div class="plan-card-title">기본혜택</div>
-        <div class="plan-card-content">{{ plan.basicBenefit }}</div>
+        <div class="plan-card-content">{{ plan.smsAllowance || '-' }}</div>
       </div>
     </div>
-    <!-- 하단 회색 영역 -->
     <div class="plan-detail-bottom"></div>
-    <div class="plan-detail-bottom-title">기본 혜택</div>
+    <!-- 혜택 안내 영역을 페이지의 가장 마지막에 위치, 배경색을 흰색으로 변경 -->
+    <div class="plan-benefit-section">
+      <div class="benefit-title">혜택 안내</div>
+      <div class="benefit-list">
+        <div v-if="plan.basicBenefit?.basic_benefit" class="benefit-item">
+          <span class="benefit-label">기본혜택</span>
+          <span class="benefit-content">{{ plan.basicBenefit.basic_benefit }}</span>
+        </div>
+        <div v-if="plan.discountBenefit" class="benefit-item">
+          <span class="benefit-label">할인혜택</span>
+          <span class="benefit-content" v-html="parsedDiscountBenefit"></span>
+        </div>
+      </div>
+    </div>
     <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
     <Chatbot
       v-if="showChatbot"
-      :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
       @review="goToReviewPage"
     />
@@ -55,13 +58,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-// import { useRoute } from "vue-router";
-// import axios from "axios";
+import { ref, onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
+import axios from "axios";
 import ChatbotReviewModal from "@/components/ChatbotReviewModal.vue";
 import Chatbot from "@/components/ChatbotComponent.vue";
 
-// const route = useRoute();
+const route = useRoute();
 
 // 예시 하드코딩 데이터
 const examplePlan = {
@@ -79,14 +82,9 @@ const examplePlan = {
 const plan = ref({ ...examplePlan });
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
-const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
-  if (showChatbot.value) {
-    chatbotOpenTrigger.value = false;
-    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
-  }
 };
 
 const goToReviewPage = () => {
@@ -102,102 +100,123 @@ const formatCurrency = (amount) => {
   return amount ? amount.toLocaleString("ko-KR") : "-";
 };
 
-// onMounted(async () => {
-//   try {
-//     const rateplanId = route.params.rateplanId
-//     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
-//     // 실제 API 연동
-//     const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
-//     console.log('API response:', data);
-//     plan.value = data
-//   } catch (e) {
-//     console.error('API 오류:', e)
-//     // 실패 시 하드코딩 데이터 사용
-//     plan.value = { ...examplePlan }
-//   }
-// })
+const parsedDiscountBenefit = computed(() => {
+  const raw = plan.value.discountBenefit;
+  if (!raw) return '';
+  let text = '';
+  // 객체로 오는 경우
+  if (typeof raw === 'object' && raw.discount_benefit) {
+    text = raw.discount_benefit;
+  } else {
+    try {
+      if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+        const obj = JSON.parse(raw);
+        text = obj.discount_benefit || raw;
+      } else {
+        text = raw;
+      }
+    } catch (e) {
+      text = raw;
+    }
+  }
+  // '/' 기준으로 줄바꿈
+  return text.split('/').map(s => s.trim()).join('<br/>');
+});
 
 onMounted(async () => {
-  plan.value = { ...examplePlan };
+  try {
+    const rateplanId = route.params.rateplanId
+    console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
+    console.log('API 데이터 호출 시도 중 (PlanDetailPage):', `/api/rateplans/storages/${rateplanId}`);
+    // 실제 API 연동
+    const { data } = await axios.get(`/api/rateplans/storages/${rateplanId}`)
+    console.log('API response:', data);
+    plan.value = data
+  } catch (e) {
+    console.error('API 오류:', e)
+    // 실패 시 하드코딩 데이터 사용
+    plan.value = { ...examplePlan }
+  }
 });
 </script>
 
 <style scoped>
 .plan-detail-bg {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   position: absolute;
   left: 0;
   top: 0;
   background: #fff;
   font-family: "Pretendard", sans-serif;
+  overflow-x: hidden;
 }
 .plan-detail-pink {
-  position: absolute;
+  position: absolute;               
   width: 100%;
-  height: 60vh;
+  height: 70vh;
   left: 0;
   top: 0;
-  background: rgba(230, 2, 126, 0.7);
-  min-height: 350px;
+  background: linear-gradient(to bottom, rgba(255, 228, 225, 0.7), rgba(255, 192, 203, 0.7)); /* 더 연하고 입체적인 그라데이션 핑크 */
+  min-height: 400px;
 }
 .plan-detail-title {
   position: absolute;
-  left: 6vw;
-  top: 9vh;
+  left: 12vw;
+  top: 12vh;
   font-size: 2.8rem;
   font-weight: 700;
   color: #000;
 }
 .plan-detail-desc {
   position: absolute;
-  left: 6vw;
-  top: 15vh;
+  left: 12vw;
+  top: 21vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-detail-line {
   position: absolute;
-  left: 6vw;
-  top: 23vh;
-  width: 88vw;
+  left: 12vw;
+  top: 28vh;
+  width: 76vw;
   border-bottom: 2px solid #797070;
 }
 .plan-detail-fee {
   position: absolute;
-  right: 6vw;
-  top: 10vh;
+  right: 12vw;
+  top: 15vh;
   font-size: 2rem;
   font-weight: 700;
   color: #000;
 }
 .plan-detail-discount {
   position: absolute;
-  right: 6vw;
-  top: 15vh;
+  right: 12vw;
+  top: 20vh;
   font-size: 1.2rem;
   color: #000;
 }
 .plan-card-row {
   position: absolute;
-  left: 0;
-  top: 28vh;
-  width: 100%;
+  top: 35vh;
+  width: auto;
+  margin-left: 12vw;
   display: flex;
   justify-content: flex-start;
   gap: 2vw;
   z-index: 2;
-  padding-left: 6vw;
+  padding-left: 0;
 }
 .plan-card {
-  background: #e6027e;
+  background: #FFF0F5; /* 그라데이션 없이 정말정말 연한 핑크 (LavenderBlush) */
   border-radius: 1.2rem;
   width: 13vw;
   min-width: 150px;
   max-width: 220px;
-  height: 22vh;
-  min-height: 140px;
-  max-height: 250px;
+  height: 21vh;
+  min-height: 130px;
+  max-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -219,26 +238,21 @@ onMounted(async () => {
   font-size: 1.3rem;
   font-weight: 700;
   color: #000;
-  word-break: keep-all;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  max-height: 100%;
 }
 .plan-detail-bottom {
   position: absolute;
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 28vh;
-  min-height: 180px;
-  background: rgba(217, 217, 217, 0.4);
+  height: 15vh;
+  min-height: 100px;
+  background: #fff;
   z-index: 1;
-}
-.plan-detail-bottom-title {
-  position: absolute;
-  left: 7vw;
-  bottom: 7vh;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #000;
-  z-index: 2;
 }
 /* 챗봇/문어 버튼 스타일 */
 .floating-action-button {
@@ -356,5 +370,47 @@ onMounted(async () => {
     transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+.plan-benefit-section {
+  width: 90vw;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: absolute;
+  bottom: 3vh;
+  z-index: 10;
+}
+.benefit-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  color: #e0186f;
+}
+.benefit-list {
+  width: 100%;
+}
+.benefit-item {
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+}
+.benefit-label {
+  font-weight: 600;
+  color: #e0186f;
+  margin-right: 1rem;
+  min-width: 80px;
+}
+.benefit-content {
+  color: #222;
+  font-size: 1.1rem;
+  word-break: break-word;
+  text-align: left;
 }
 </style>

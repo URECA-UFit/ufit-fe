@@ -1,16 +1,16 @@
 <template>
   <nav class="admin-menu-bar">
     <ul>
-      <li :class="{ active: isActive('/dashboard') }" @click="goTo('/dashboard')">
+      <li :class="{ active: isActive('/dashboard') }" @click="goTo('/admin/dashboard')">
         <span class="icon">📊</span> <span class="label">대시보드</span>
       </li>
-      <li :class="{ active: isActive('/reviews') }" @click="goTo('/reviews')">
+      <li :class="{ active: isActive('/reviews') }" @click="goTo('/admin/reviews')">
         <span class="icon">📝</span> <span class="label">리뷰 목록</span>
       </li>
       <li :class="{ active: isActive('/admin/rateplan/storage') }" @click="goTo('/admin/rateplan/storage')">
         <span class="icon">📦</span> <span class="label">요금제 목록</span>
       </li>
-      <li :class="{ active: isActive('/rateplan/add') }" @click="goTo('/rateplan/add')">
+      <li :class="{ active: isActive('/rateplan/add') }" @click="goTo('/admin/rateplan/add')">
         <span class="icon">➕</span> <span class="label">요금제 추가</span>
       </li>
     </ul>
