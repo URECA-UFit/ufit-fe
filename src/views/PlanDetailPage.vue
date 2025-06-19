@@ -107,6 +107,7 @@ const formatCurrency = (amount) => {
 const parsedDiscountBenefit = computed(() => {
   const raw = plan.value.discountBenefit;
   if (!raw) return '';
+  
   if (typeof raw === 'string') {
     return raw.split('/').map(s => s.trim()).join('<br/>');
   }
@@ -233,6 +234,7 @@ onMounted(async () => {
   max-width: 220px;
   height: 13vw;
   min-height: 150px;
+
   max-height: 220px;
   display: flex;
   flex-direction: column;
@@ -397,6 +399,7 @@ onMounted(async () => {
   border-radius: 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   padding: 1.2rem 1.5rem;
+
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -405,6 +408,7 @@ onMounted(async () => {
   z-index: 10;
   max-height: 20vh;
   overflow-y: auto;
+
 }
 .benefit-title {
   font-size: 1.4rem;
