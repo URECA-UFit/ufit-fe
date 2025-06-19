@@ -103,20 +103,24 @@ const formatCurrency = (amount) => {
 const parsedDiscountBenefit = computed(() => {
   const raw = plan.value.discountBenefit;
   if (!raw) return '';
+  let text = '';
   // 객체로 오는 경우
   if (typeof raw === 'object' && raw.discount_benefit) {
-    return raw.discount_benefit;
-  }
-  // 문자열로 오는 경우
-  try {
-    if (typeof raw === 'string' && raw.trim().startsWith('{')) {
-      const obj = JSON.parse(raw);
-      return obj.discount_benefit || raw;
+    text = raw.discount_benefit;
+  } else {
+    try {
+      if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+        const obj = JSON.parse(raw);
+        text = obj.discount_benefit || raw;
+      } else {
+        text = raw;
+      }
+    } catch (e) {
+      text = raw;
     }
-    return raw;
-  } catch (e) {
-    return raw;
   }
+  // '/' 기준으로 줄바꿈
+  return text.split('/').map(s => s.trim()).join('<br/>');
 });
 
 onMounted(async () => {
@@ -407,5 +411,6 @@ onMounted(async () => {
   color: #222;
   font-size: 1.1rem;
   word-break: break-word;
+  text-align: left;
 }
 </style>
