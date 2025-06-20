@@ -1,10 +1,10 @@
 <template>
   <div class="chatbot-review-list-container">
-    <AdminMenuBar />
     <CommonHeader title="챗봇 리뷰 내역" />
-
-    <div class="chatbot-review-cards">
-      <div
+    
+      <div class="chatbot-review-cards">
+        <AdminMenuBar />
+        <div
         v-for="review in chatBotReviews"
         :key="review.chatBotReviewId"
         class="chatbot-review-card">
@@ -28,7 +28,6 @@
           </div>
           <p class="content">{{ review.content }}</p>
         </div>
-      </div>
     </div>
 
     <div v-if="isLoading" class="loading-indicator">
@@ -37,12 +36,12 @@
     <div v-if="!hasNext && !isLoading && chatBotReviews.length > 0" class="end-of-list">
       더 이상 리뷰가 없습니다.
     </div>
-
+  </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import CommonHeader from "@/components/CommonHeader.vue";
 import AdminMenuBar from '@/components/AdminMenuBar.vue'
 import api from '@/api/axiosInstance';
@@ -52,6 +51,8 @@ const cursor = ref(null);
 const hasNext = ref(true);
 const pageSize = 5;
 const isLoading = ref(false); 
+const scrollContainer = ref(null);
+
 const fetchChatBotReview = async () => {
   console.log('fetchChatBotReview 호출됨'); // 디버깅용
   
@@ -68,8 +69,6 @@ const fetchChatBotReview = async () => {
       params.cursor = cursor.value; 
     }
 
-    console.log('API 호출 직전: 토큰 및 파라미터', { token, params });
-
     const res = await api.get("/api/admin/chats/reviews", {
       headers: {
         Authorization: `Bearer ${token}`
@@ -79,7 +78,7 @@ const fetchChatBotReview = async () => {
   
     chatBotReviews.value = [...chatBotReviews.value, ...res.data.item];
 
-    cursor.value = res.data.cursor;
+    cursor.value = res.data.nextCursor;
     hasNext.value = res.data.hasNext;
 
   } catch (e) {
@@ -92,20 +91,28 @@ const fetchChatBotReview = async () => {
 
 const handleScroll = () => {
 
-  const scrollHeight = document.documentElement.scrollHeight;
-  const scrollTop = document.documentElement.scrollTop;
-  const clientHeight = document.documentElement.clientHeight;
+  const container = scrollContainer.value;
+  if (!container) return;
 
-  console.log(`scrollTop: ${scrollTop}, clientHeight: ${clientHeight}, scrollHeight: ${scrollHeight}`);
+  const scrollTop = container.scrollTop;
+  const scrollHeight = container.scrollHeight;
+  const clientHeight = container.clientHeight;
+
+
+
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-
     fetchChatBotReview(); 
   }
 };
 
+
 onMounted(() => {
-  fetchChatBotReview(); 
-  window.addEventListener('scroll', handleScroll); 
+  fetchChatBotReview();
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener('scroll', handleScroll);
+    }
+  });
 });
 
 </script>
@@ -161,14 +168,15 @@ onMounted(() => {
 
 /* 리뷰 카드 목록 */
 .chatbot-review-cards {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 0 40px;
-  /* margin-bottom: 80px; FAB 공간 확보 */
+  height: calc(100vh - 220px); /* 헤더 + 마진 고려 */
+  overflow-y: auto;
+  /* padding: 0 40px; */
+  margin-right: 300px; /*AdminMenuBar 공간 확보*/
+
 }
 
 /* 각 리뷰 카드 */
-.chatbot-review-card {
+/* .chatbot-review-card {
   background-color: white;
   border-radius: 10px;
   padding: 20px;
@@ -178,7 +186,7 @@ onMounted(() => {
   border: none;
   transition: transform 0.2s ease;
   margin-bottom: 20px;
-}
+} */
 
 .chatbot-review-card:hover {
   transform: translateY(-5px); /* 호버 시 약간 위로 */
@@ -228,7 +236,6 @@ onMounted(() => {
 .chatbot-review-card {
   display: flex;
   flex-direction: row; 
-  margin-right: 300px;
   gap: 24px;
   background: #fff;
   border-radius: 12px;
@@ -302,6 +309,26 @@ onMounted(() => {
 
 .floating-action-button:hover .mascot-img {
   transform: scale(1.1);
+}
+
+
+/* 스크롤바 스타일링 */
+.chatbot-review-cards::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chatbot-review-cards::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chatbot-review-cards::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.chatbot-review-cards::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* Pagination Styles */

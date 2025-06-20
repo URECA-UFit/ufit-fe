@@ -1,10 +1,10 @@
 <template>
   <nav class="admin-menu-bar">
     <ul>
-      <li :class="{ active: isActive('/dashboard') }" @click="goTo('/admin/dashboard')">
+      <li :class="{ active: isActive('/admin/dashboard') }" @click="goTo('/admin/dashboard')">
         <span class="icon">📊</span> <span class="label">대시보드</span>
       </li>
-      <li :class="{ active: isActive('/reviews') }" @click="goTo('/admin/reviews')">
+      <li :class="{ active: isActive('/admin/reviews') }" @click="goTo('/admin/reviews')">
         <span class="icon">📝</span> <span class="label">리뷰 목록</span>
       </li>
       <li :class="{ active: isActive('/admin/rateplan/storage') }" @click="goTo('/admin/rateplan/storage')">
