@@ -12,17 +12,17 @@
     </div>
     <!-- 카드 5개 -->
     <div class="plan-card-row">
-      <div class="plan-card">
+      <div class="plan-card" v-if="showDataCard">
         <div class="plan-card-title">데이터</div>
-        <div class="plan-card-content">{{ plan.dataAllowance || '-' }}</div>
+        <div class="plan-card-content">{{ plan.dataAllowance }}</div>
       </div>
-      <div class="plan-card">
+      <div class="plan-card" v-if="showVoiceCard">
         <div class="plan-card-title">음성통화</div>
-        <div class="plan-card-content">{{ plan.voiceAllowance || '-' }}</div>
+        <div class="plan-card-content">{{ plan.voiceAllowance }}</div>
       </div>
-      <div class="plan-card">
+      <div class="plan-card" v-if="showSmsCard">
         <div class="plan-card-title">문자메시지</div>
-        <div class="plan-card-content">{{ plan.smsAllowance || '-' }}</div>
+        <div class="plan-card-content">{{ plan.smsAllowance }}</div>
       </div>
     </div>
     <div class="plan-detail-bottom"></div>
@@ -103,6 +103,13 @@ const handleReviewSubmit = (review) => {
 const formatCurrency = (amount) => {
   return amount ? amount.toLocaleString("ko-KR") : "-";
 };
+
+// 값이 유효한지 (null, undefined, 빈 문자열이 아닌지) 확인하는 헬퍼
+const isValid = (value) => value !== null && value !== undefined && value.toString().trim() !== '';
+
+const showDataCard = computed(() => isValid(plan.value.dataAllowance));
+const showVoiceCard = computed(() => isValid(plan.value.voiceAllowance));
+const showSmsCard = computed(() => isValid(plan.value.smsAllowance));
 
 const parsedDiscountBenefit = computed(() => {
   const raw = plan.value.discountBenefit;
@@ -192,6 +199,10 @@ onMounted(async () => {
   top: 21vh;
   font-size: 1.2rem;
   color: #000;
+  max-width: 76vw;
+  word-break: keep-all;
+  white-space: normal;
+  text-align: left;
 }
 .plan-detail-line {
   position: absolute;
@@ -203,7 +214,7 @@ onMounted(async () => {
 .plan-detail-fee {
   position: absolute;
   right: 12vw;
-  top: 15vh;
+  top: 13vh;
   font-size: 2rem;
   font-weight: 700;
   color: #000;
@@ -211,7 +222,7 @@ onMounted(async () => {
 .plan-detail-discount {
   position: absolute;
   right: 12vw;
-  top: 20vh;
+  top: 18vh;
   font-size: 1.2rem;
   color: #000;
 }
