@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, onActivated, onDeactivated } from "vue";
+import { ref, onMounted, computed, nextTick, onActivated, onDeactivated, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import CommonHeader from "@/components/CommonHeader.vue";
 import AdminMenuBar from '@/components/AdminMenuBar.vue'
@@ -116,6 +116,8 @@ const hasMoreData = ref(true);
 const scrollContainer = ref(null);
 const sortType = ref('');
 const scrollPosition = ref(0);
+const scrollTimeout = ref(null); 
+const autoLoadTimer = ref(null); 
 
 const ratePlansLength = computed(() => {
   return ratePlans.value ? ratePlans.value.length : 0;
@@ -123,6 +125,19 @@ const ratePlansLength = computed(() => {
 
 const formatCurrency = (amount) => {
   return amount.toLocaleString("ko-KR");
+};
+
+const getDynamicSize = () => {
+  const width = window.innerWidth;
+  
+
+  if (width >= 2560) {
+    return 8; 
+  } else if (width >= 1920) {
+    return 6;
+  } else {
+    return 5; 
+  }
 };
 
 const fetchRatePlans = async (isLoadMore = false) => {
@@ -137,7 +152,7 @@ const fetchRatePlans = async (isLoadMore = false) => {
   try {
     const accessToken = getAccessToken();
     const params = {
-      size: 5
+      size: getDynamicSize()
     };
 
     if (sortType.value && sortType.value !== '') {
@@ -192,6 +207,9 @@ const fetchRatePlans = async (isLoadMore = false) => {
       lastCursor.value = null;
     }
 
+    await nextTick();
+    autoLoadMoreIfNeeded();
+
   } catch (error) {
     if (error.response?.status === 500) {
       lastCursor.value = null;
@@ -214,19 +232,65 @@ const fetchRatePlans = async (isLoadMore = false) => {
   }
 };
 
+const checkScrollability = () => {
+  if (!scrollContainer.value) return false;
+  
+  const container = scrollContainer.value;
+  const hasScroll = container.scrollHeight > container.clientHeight;
+  
+  console.log('Scrollability check:', {
+    scrollHeight: container.scrollHeight,
+    clientHeight: container.clientHeight,
+    hasScroll,
+    containerHeight: container.offsetHeight
+  });
+  
+  return hasScroll;
+};
+
+const autoLoadMoreIfNeeded = () => {
+  if (!checkScrollability() && hasMoreData.value && !isLoadingMore.value) {
+    
+    if (autoLoadTimer.value) {
+      clearTimeout(autoLoadTimer.value);
+    }
+    
+    autoLoadTimer.value = setTimeout(() => {
+      if (!checkScrollability() && hasMoreData.value && !isLoadingMore.value) {
+        loadMoreData();
+      }
+    }, 1000);
+  }
+};
+
 const handleScroll = () => {
   if (!scrollContainer.value || isLoadingMore.value || !hasMoreData.value) {
     return;
   }
 
-  const container = scrollContainer.value;
-  const scrollTop = container.scrollTop;
-  const scrollHeight = container.scrollHeight;
-  const clientHeight = container.clientHeight;
+  if (!checkScrollability()) {
 
-  if (scrollTop + clientHeight >= scrollHeight - 100) {
-    loadMoreData();
+    autoLoadMoreIfNeeded();
+    return;
   }
+
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
+
+  scrollTimeout.value = setTimeout(() => {
+    const container = scrollContainer.value;
+    if (!container) return;
+    
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+  
+    if (scrollTop >= scrollHeight - clientHeight - 300) {
+      loadMoreData();
+    }
+  }, 50); 
 };
 
 const loadMoreData = async () => {
@@ -243,6 +307,7 @@ const setupScrollListener = async () => {
   await nextTick();
   if (scrollContainer.value) {
     scrollContainer.value.addEventListener('scroll', handleScroll);
+    
   } else {
     console.log('스크롤 컨테이너를 찾을 수 없음');
   }
@@ -322,6 +387,12 @@ onMounted(async () => {
   if (ratePlans.value.length === 0) {
     await fetchRatePlans(false);
   }
+  
+  await nextTick();
+  
+  await setupScrollListener();
+  
+  autoLoadMoreIfNeeded();
 });
 
 onActivated(async () => {
@@ -341,6 +412,33 @@ onDeactivated(() => {
     scrollPosition.value = scrollContainer.value.scrollTop;
   }
   removeScrollListener();
+  
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+    scrollTimeout.value = null;
+  }
+  
+  if (autoLoadTimer.value) {
+    clearTimeout(autoLoadTimer.value);
+    autoLoadTimer.value = null;
+  }
+});
+
+onBeforeUnmount(() => {
+  if (scrollContainer.value) {
+    scrollPosition.value = scrollContainer.value.scrollTop;
+  }
+  removeScrollListener();
+  
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+    scrollTimeout.value = null;
+  }
+  
+  if (autoLoadTimer.value) {
+    clearTimeout(autoLoadTimer.value);
+    autoLoadTimer.value = null;
+  }
 });
 </script>
 
@@ -393,9 +491,47 @@ onDeactivated(() => {
 
 .rate-plan-cards {
   height: calc(100vh - 280px); 
+  min-height: 400px;
+  max-height: calc(100vh - 200px); 
   overflow-y: auto;
   padding: 0 40px;
   margin-right: 300px; 
+}
+
+@media (min-width: 1920px) {
+  .rate-plan-cards {
+    height: calc(100vh - 320px);
+    min-height: 500px;
+    max-height: calc(100vh - 240px);
+    margin-right: 350px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .rate-plan-cards {
+    height: calc(100vh - 360px);
+    min-height: 600px;
+    max-height: calc(100vh - 280px);
+    margin-right: 400px;
+  }
+}
+
+@media (max-width: 1366px) {
+  .rate-plan-cards {
+    height: calc(100vh - 260px);
+    min-height: 350px;
+    max-height: calc(100vh - 180px);
+    margin-right: 280px;
+  }
+}
+
+@media (min-width: 3840px) {
+  .rate-plan-cards {
+    height: calc(100vh - 400px);
+    min-height: 800px;
+    max-height: calc(100vh - 320px);
+    margin-right: 450px;
+  }
 }
 
 .rate-plan-cards::-webkit-scrollbar {
