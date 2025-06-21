@@ -2,8 +2,8 @@
   <div class="chatbot-review-list-container">
     <CommonHeader title="챗봇 리뷰 내역" />
     
-      <div class="chatbot-review-cards">
-        <AdminMenuBar />
+    <AdminMenuBar />
+      <div class="chatbot-review-cards"  ref="scrollContainer">
         <div
         v-for="review in chatBotReviews"
         :key="review.chatBotReviewId"
