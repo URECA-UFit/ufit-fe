@@ -28,7 +28,7 @@ const routes = [
     path: "/admin/rateplan/storage",
     name: "AdmonRatePlanStore",
     component: AdminRatePlanStorePage,
-    meta: {requiresAuth: true, requiresAdmin: true}
+    meta: {requiresAuth: true, requiresAdmin: true, keepAlive: true}
   },
   { 
     path: "/admin/dashboard",
@@ -53,6 +53,13 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
+    }
+  },
 });
 
 router.beforeEach((to, from, next) => {
