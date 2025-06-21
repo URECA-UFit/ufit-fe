@@ -131,12 +131,14 @@ const handleLogin = async () => {
         storageArea: localStorage
       }));
 
+      // 이벤트로 로그인 알림
+      window.dispatchEvent(new CustomEvent('userLogin'));
+
       if (userRole === 'ADMIN') {
         router.push('/admin/dashboard'); // 관리자는 대시보드 페이지로 이동
       } else if (userRole === 'USER') {
         router.push('/rateplan/storage'); // 일반 사용자는 요금제 페이지로 이동
       }
-
 
     } else {
       console.error('로그인 성공 후 Access Token 누락:', res);

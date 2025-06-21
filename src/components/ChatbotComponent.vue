@@ -401,13 +401,36 @@ function onScroll(e) {
   }
 }
 
+// 로그인/로그아웃 이벤트 감지하여 챗봇 자동 닫기
+const handleAuthChange = () => {
+  emit('close');
+};
+
+// localStorage 변화 감지 (다른 탭에서의 로그아웃)
+const handleStorageChange = (event) => {
+  if (event.key === 'accessToken' && event.newValue === null) {
+    emit('close');
+  }
+};
+
 onMounted(() => {
   const box = document.querySelector('.chatbot-messages');
   if (box) box.addEventListener('scroll', onScroll);
+  
+  // 이벤트 리스너 등록
+  window.addEventListener('userLogout', handleAuthChange);
+  window.addEventListener('userLogin', handleAuthChange);
+  window.addEventListener('storage', handleStorageChange);
 });
+
 onBeforeUnmount(() => {
   const box = document.querySelector('.chatbot-messages');
   if (box) box.removeEventListener('scroll', onScroll);
+  
+  // 이벤트 리스너 제거
+  window.removeEventListener('userLogout', handleAuthChange);
+  window.removeEventListener('userLogin', handleAuthChange);
+  window.removeEventListener('storage', handleStorageChange);
 });
 </script>
 

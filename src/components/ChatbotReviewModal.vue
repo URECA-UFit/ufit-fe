@@ -23,7 +23,7 @@
       ></textarea>
 
       <div class="modal-buttons">
-        <button @click="submit">제출</button>
+        <button @click="submit" :disabled="isSubmitting">제출</button>
       </div>
     </div>
   </div>
@@ -35,6 +35,8 @@ import api from "@/api/axiosInstance";
 import Swal from "sweetalert2";
 
 const emit = defineEmits(["close", "submit"]);
+const isSubmitting = ref(false);
+
 const props = defineProps({
   chatRoomId: {
     type: Number,
@@ -58,6 +60,8 @@ const close = () => {
 };
 
 const submit = async () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
   const reviewData = {
     rating: rating.value,
     content: reviewText.value,
@@ -108,6 +112,8 @@ const submit = async () => {
     } else {
       alert("서버와의 통신 중 오류가 발생했습니다.");
     }
+  } finally {
+    isSubmitting.value = false;
   }
 
   rating.value = 5;
@@ -212,5 +218,12 @@ textarea {
 
 .modal-buttons button:hover {
   background-color: #b3006d;
+}
+
+.modal-buttons button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 </style>
