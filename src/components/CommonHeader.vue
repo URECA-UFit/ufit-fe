@@ -83,6 +83,9 @@ const handleLogout = async () => {
       storageArea: localStorage
     }));
     
+    // 이벤트로 로그아웃 알림
+    window.dispatchEvent(new CustomEvent('userLogout'));
+    
     isLoggedIn.value = false;
     router.push("/login");
   }

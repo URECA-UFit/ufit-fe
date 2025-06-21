@@ -176,7 +176,10 @@ const sortByPrice = (type) => {
   fetchRatePlans(); // 정렬 타입 변경 후 다시 데이터 불러오기
 };
 
-onMounted(fetchRatePlans);
+onMounted(() => {
+  fetchRatePlans();
+});
+
 onActivated(() => {
   // 페이지가 다시 활성화될 때 필요한 경우에만 데이터를 다시 불러옵니다
   if (ratePlans.value.length === 0) {
