@@ -19,7 +19,6 @@ function addRefreshSubscriber(callback) {
   refreshSubscribers.push(callback)
 }
 
-
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
   if (token) {
@@ -57,7 +56,6 @@ api.interceptors.response.use(
             { 
               withCredentials: true,
               headers: {
-                // 'Authorization' 헤더에 'Bearer ' 접두사와 함께 가져온 토큰 값을 사용합니다.
                 'Authorization': expiredAccessToken ? `Bearer ${expiredAccessToken}` : '', 
               }
             }
@@ -78,7 +76,8 @@ api.interceptors.response.use(
         } catch (e) {
           console.error('[토큰 재발급 실패]', e);
           isRefreshing = false;
-          //window.location.href = '/login';
+          localStorage.removeItem('accessToken');
+          window.location.href = '/login';
           return Promise.reject(e);
         }
       } else {
