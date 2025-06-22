@@ -9,9 +9,7 @@
     <div v-else class="chart-area-wrapper">
       <div
         class="chart-area"
-        @mousemove="onChartMouseMove"
-        @mouseleave="onChartMouseLeave"
-        :style="{ position: 'relative', width: '800px', height: '400px', margin: '0 auto' }"
+        :style="{ position: 'relative', width: '100%', maxWidth: '1000px', height: '400px', margin: '0 auto' }"
       >
         <Bar 
           :data="chartData" 
@@ -21,7 +19,6 @@
         />
         <button
           class="side-pagination left"
-          :class="{ active: hoverSide === 'left' }"
           @click="fetchPreviousPage"
           :disabled="!hasPrevious"
         >
@@ -29,7 +26,6 @@
         </button>
         <button
           class="side-pagination right"
-          :class="{ active: hoverSide === 'right' }"
           @click="fetchNextPage"
           :disabled="!hasNext"
         >
@@ -66,7 +62,6 @@ const currentPage = ref(1)
 const hasPrevious = ref(false)
 const hasNext = ref(false)
 const ratePlanMetrics = ref([])
-const hoverSide = ref(null)
 
 const colors = [
   '#e0186f', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
@@ -85,7 +80,7 @@ const fetchRatePlanMetrics = async (page) => {
     const response = await api.get(`/api/admin/rateplans/metrics`, {
       params: {
         page: page,
-        size: 5
+        size: 7
       },
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -119,19 +114,6 @@ const fetchNextPage = () => {
   if (hasNext.value) {
     fetchRatePlanMetrics(currentPage.value + 1)
   }
-}
-
-function onChartMouseMove(e) {
-  const rect = e.target.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  if (x < rect.width / 2) {
-    hoverSide.value = 'left'
-  } else {
-    hoverSide.value = 'right'
-  }
-}
-function onChartMouseLeave() {
-  hoverSide.value = null
 }
 
 onMounted(() => {
@@ -182,7 +164,17 @@ const chartOptions = ref({
       position: 'right',
       labels: {
         boxWidth: 10,
-        boxHeight: 10
+        boxHeight: 10,
+        generateLabels(chart) {
+          // Use the default generator provided by Chart.js
+          const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+          return original.map(item => {
+            const text = item.text;
+            // Insert newline every 30 characters
+            item.text = text.replace(/(.{30})/g, '$1\n');
+            return item;
+          });
+        }
       }
     },
     title: {
@@ -215,11 +207,13 @@ watch(ratePlanMetrics, (newMetrics) => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
+  margin-right: 320px;   /* menu bar (≈240) + 80px breathing room */
 }
 
 .chart-area {
   position: relative;
-  width: 800px;
+  width: 100%;
+  max-width: 1000px;
   height: 400px;
   background-color: white;
   border-radius: 8px;
@@ -249,7 +243,7 @@ watch(ratePlanMetrics, (newMetrics) => {
 .side-pagination.right {
   right: -50px;
 }
-.side-pagination.active {
+.side-pagination:hover:not(:disabled) {
   opacity: 1;
   background: #c0155e;
 }
@@ -303,5 +297,20 @@ watch(ratePlanMetrics, (newMetrics) => {
   padding: 40px;
   font-size: 18px;
   color: #666;
+}
+
+.chart-area .legend,
+.chart-area .legend span,
+.chart-area .legend li,
+.chart-area .legend label {
+  white-space: normal !important;
+  white-space: pre-line !important;
+  word-break: break-word;
+  max-width: 480px;
+  display: block !important;
+}
+
+.chart-area .legend li {
+  margin-bottom: 8px;
 }
 </style>
