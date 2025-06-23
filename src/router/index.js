@@ -64,10 +64,9 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const isLoggedIn = !!localStorage.getItem("accessToken");
-  const userRole = localStorage.getItem("userRole"); // "USER" or "ADMIN"
+  const userRole = localStorage.getItem("userRole"); 
   const { requiresAuth, requiresAdmin } = to.meta;
 
-  // 1. 루트로 접근 시 역할에 따라 리디렉션
   if (to.path === "/") {
     if (!isLoggedIn) return next({ name: "Login" });
     return userRole === "ADMIN"
@@ -75,26 +74,22 @@ router.beforeEach((to, from, next) => {
       : next({ name: "RatePlanStore" });
   }
 
-  // 2. 로그인 페이지 접근 시 이미 로그인했다면 리디렉션
   if (to.name === "Login" && isLoggedIn) {
     return userRole === "ADMIN"
       ? next({ name: "DashBoard" })
       : next({ name: "RatePlanStore" });
   }
 
-  // 3. 로그인 필요 라우트인데 비로그인 상태
   if (requiresAuth && !isLoggedIn) {
     return next({ name: "Login" });
   }
 
-  // 4. 관리자 권한 필요 라우트인데 일반 사용자거나 미로그인
   if (requiresAdmin && userRole !== "ADMIN") {
     return isLoggedIn
-      ? next({ name: "RatePlanStore" }) // 일반 로그인 사용자는 사용자 페이지로
-      : next({ name: "Login" });        // 비로그인은 로그인 페이지로
+      ? next({ name: "RatePlanStore" }) 
+      : next({ name: "Login" });      
   }
 
-  // 5. 그 외엔 통과
   next();
 });
 

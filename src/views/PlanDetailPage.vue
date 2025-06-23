@@ -101,8 +101,8 @@ const goToReviewPage = () => {
   showReviewModal.value = true;
 };
 
-const handleReviewSubmit = (review) => {
-  console.log("리뷰 제출됨:", review);
+const handleReviewSubmit = () => {
+  console.log("리뷰 제출됨");
   // TODO: 실제 API로 리뷰 전송
 };
 

@@ -9,13 +9,11 @@ let isRefreshing = false
 let refreshSubscribers = []
 
 function onRefreshed(token) {
-  console.log('[토큰 재발급] 모든 구독 요청에 새 토큰 전파')
   refreshSubscribers.forEach((callback) => callback(token))
   refreshSubscribers = []
 }
 
 function addRefreshSubscriber(callback) {
-  console.log('[토큰 재발급] 구독 요청 추가')
   refreshSubscribers.push(callback)
 }
 
@@ -33,7 +31,6 @@ api.interceptors.response.use(
     const { config, response } = error;
 
     if (!response) {
-      console.warn('[에러] 네트워크 또는 서버 응답 없음');
       return Promise.reject(error);
     }
 
@@ -45,7 +42,6 @@ api.interceptors.response.use(
       config._retry = true;
 
       if (!isRefreshing) {
-        console.warn('[토큰 만료] 토큰 재발급 시도 시작');
         isRefreshing = true;
         try {
           const expiredAccessToken = localStorage.getItem('accessToken');
@@ -62,37 +58,29 @@ api.interceptors.response.use(
           );
 
           const newAccessToken = res.headers['authorization']?.replace('Bearer ', '');
-          console.warn(newAccessToken);
           
           if (newAccessToken) {
             localStorage.setItem('accessToken', newAccessToken);
             onRefreshed(newAccessToken);
-          } else {
-            console.error('[토큰 재발급 실패] 응답에 토큰 없음');
           }
 
           isRefreshing = false;
         } catch (e) {
-          console.error('[토큰 재발급 실패]', e);
           isRefreshing = false;
           localStorage.removeItem('accessToken');
           window.location.href = '/login';
           return Promise.reject(e);
         }
-      } else {
-        console.log('[토큰 재발급 중] 구독자로 요청 대기');
       }
 
       return new Promise((resolve) => {
         addRefreshSubscriber((newToken) => {
-          console.log('[요청 재시도] 새로운 토큰으로 요청 재시도');
           config.headers['Authorization'] = `Bearer ${newToken}`;
           resolve(api(config));
         });
       });
     }
 
-    console.error('[API 에러]', status, data);
     return Promise.reject(error);
   }
 );

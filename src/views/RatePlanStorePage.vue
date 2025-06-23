@@ -77,7 +77,7 @@ const router = useRouter();
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
 const chatbotOpenTrigger = ref(false);
-const sortType = ref('PRICE_ASC'); // 기본 정렬 타입을 낮은 가격순으로 설정
+const sortType = ref('PRICE_ASC'); 
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
@@ -89,11 +89,6 @@ const handleMascotClick = () => {
 
 const goToReviewPage = () => {
   showReviewModal.value = true;
-};
-
-const handleReviewSubmit = (review) => {
-  console.log("리뷰 제출됨:", review);
-  // TODO: 실제 API로 리뷰 전송
 };
 
 const goToDetail = (rateplanId) => {
@@ -111,13 +106,13 @@ const formatCurrency = (amount) => {
 };
 
 const fetchRatePlans = async () => {
-  console.log('fetchRatePlans 호출됨. 현재 페이지:', currentPage.value, '현재 정렬 타입:', sortType.value);
+
   try {
     const { data } = await api.get('/api/rateplans/storages', {
       params: {
         page: currentPage.value - 1,
         size: 5,
-        sortType: sortType.value // 백엔드 API에 맞게 sortType 파라미터 전달
+        sortType: sortType.value 
       }
     });
     ratePlans.value = data.content;
@@ -125,8 +120,7 @@ const fetchRatePlans = async () => {
     totalElements.value = data.totalElements;
     console.log('API 응답 데이터:', data.content);
   } catch (e) {
-    console.error("API 오류:", e);
-    // API 실패 시 기존 더미 데이터 로직 유지 (선택 사항)
+
     const dummyData = {
       items: [
         {
@@ -172,8 +166,7 @@ const nextPage = () => {
 
 const sortByPrice = (type) => {
   sortType.value = type;
-  console.log('정렬 타입 변경:', sortType.value);
-  fetchRatePlans(); // 정렬 타입 변경 후 다시 데이터 불러오기
+  fetchRatePlans(); 
 };
 
 onMounted(() => {
@@ -181,7 +174,7 @@ onMounted(() => {
 });
 
 onActivated(() => {
-  // 페이지가 다시 활성화될 때 필요한 경우에만 데이터를 다시 불러옵니다
+
   if (ratePlans.value.length === 0) {
     fetchRatePlans();
   }
@@ -189,7 +182,7 @@ onActivated(() => {
 </script>
 
 <style scoped>
-/* 전체 컨테이너 및 배경 */
+
 .rate-plan-list-container {
   padding: 0;
   font-family: "Pretendard", sans-serif;
@@ -198,7 +191,6 @@ onActivated(() => {
   min-height: 100vh;
 }
 
-/* 헤더 */
 .list-header {
   background-color: #e0186f;
   color: white;
@@ -215,12 +207,11 @@ onActivated(() => {
   font-weight: 700;
 }
 
-/* 로그인/로그아웃 버튼 */
 .auth-button {
   padding: 10px 20px;
   border: 1px solid white;
   border-radius: 8px;
-  background-color: transparent; /* 투명 배경 */
+  background-color: transparent; 
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -234,18 +225,16 @@ onActivated(() => {
     255,
     255,
     0.2
-  ); /* 호버 시 투명도 있는 흰색 배경 */
+  ); 
 }
 
-/* 요금제 카드 목록 */
 .rate-plan-cards {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   padding: 0 40px;
-  margin-bottom: 80px; /* FAB 공간 확보 */
+  margin-bottom: 80px; 
 }
 
-/* 각 요금제 카드 */
 .rate-plan-card {
   background-color: white;
   border-radius: 10px;
@@ -259,12 +248,12 @@ onActivated(() => {
 }
 
 .rate-plan-card:hover {
-  transform: translateY(-5px); /* 호버 시 약간 위로 */
+  transform: translateY(-5px); 
 }
 
 .card-header {
   margin-bottom: 15px;
-  position: relative; /* 뱃지 위치 조정을 위해 */
+  position: relative; 
 }
 
 .plan-name {
@@ -279,7 +268,7 @@ onActivated(() => {
 .plan-name ::v-deep(br) {
   content: "";
   display: block;
-  margin-bottom: 0.2em; /* 줄바꿈 시 간격 */
+  margin-bottom: 0.2em; 
 }
 
 .plan-summary {
@@ -292,13 +281,13 @@ onActivated(() => {
 .card-body {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* 판매중과 가격을 하단으로 정렬 */
-  flex-grow: 1; /* 카드 내용이 충분히 공간을 차지하도록 */
+  align-items: flex-end; 
+  flex-grow: 1; 
 }
 
 .fee-section {
   display: flex;
-  flex-direction: column; /* 월 요금과 할인 요금을 세로로 정렬 */
+  flex-direction: column; 
   align-items: flex-start;
 }
 
@@ -306,55 +295,53 @@ onActivated(() => {
   font-size: 22px;
   color: #e0186f;
   font-weight: 500;
-  margin-bottom: 5px; /* 할인 요금과의 간격 */
+  margin-bottom: 5px; 
 }
 
 .discount-fee {
-  font-size: 16px; /* 할인 요금 크게 */
+  font-size: 16px; 
   font-weight: 800;
   color: #999;
 }
 
-/* 마스코트 버튼 */
 .floating-action-button {
   position: fixed;
-  bottom: 25px; /* 챗봇 박스와 겹치지 않도록 조정 */
-  right: 40px; /* 챗봇 박스와 겹치지 않도록 조정 */
+  bottom: 25px; 
+  right: 40px; 
   border: none;
   background: none;
-  z-index: 1001; /* 챗봇 박스 위에 표시 */
+  z-index: 1001;
   cursor: pointer;
-  padding: 0; /* 패딩 제거 */
+  padding: 0; 
 }
 
 .floating-action-button .mascot-img {
-  width: 70px; /* 이미지 크기 조정 */
+  width: 70px; 
   height: auto;
   transition: transform 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* 마스코트 이미지에 그림자 */
-  border-radius: 50%; /* 마스코트 이미지 둥글게 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); 
+  border-radius: 50%; 
 }
 
 .floating-action-button:hover .mascot-img {
   transform: scale(1.1);
 }
 
-/* 챗봇 박스 */
 .chatbot-box {
   position: fixed;
-  bottom: 105px; /* 마스코트 버튼 바로 위 (마스코트 높이 + 여백) */
-  right: 40px; /* 마스코트 버튼과 정렬 */
+  bottom: 105px; 
+  right: 40px; 
   width: 700px;
   height: 530px;
   background-color: #fff;
-  border-radius: 16px; /* 모든 모서리를 둥글게 */
+  border-radius: 16px; 
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 1000;
   font-family: "Pretendard", sans-serif;
-  animation: slideInUp 0.3s ease-out; /* 등장 애니메이션 */
+  animation: slideInUp 0.3s ease-out; 
 }
 
 .chatbot-header {
@@ -365,7 +352,7 @@ onActivated(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 14px 14px 0 0; /* 상단 모서리만 둥글게 */
+  border-radius: 14px 14px 0 0; 
 }
 
 .chatbot-header span {
@@ -376,20 +363,20 @@ onActivated(() => {
   background: none;
   border: none;
   color: white;
-  font-size: 20px; /* X 아이콘 크기 키움 */
+  font-size: 20px; 
   cursor: pointer;
   padding: 0 5px;
 }
 
 .chatbot-messages {
-  flex-grow: 1; /* 메시지 영역이 남은 공간을 차지 */
+  flex-grow: 1; 
   padding: 12px;
   overflow-y: auto;
   font-size: 14px;
   color: #333;
-  background-color: #f9f9f9; /* 메시지 배경색 */
-  display: flex; /* 메시지를 정렬하기 위해 flexbox */
-  flex-direction: column; /* 세로로 메시지 쌓기 */
+  background-color: #f9f9f9; 
+  display: flex; 
+  flex-direction: column; 
 }
 
 .chatbot-msg {
@@ -397,8 +384,8 @@ onActivated(() => {
   color: #333;
   padding: 10px 14px;
   border-radius: 12px;
-  margin: 8px 0; /* 메시지 간 간격 */
-  align-self: flex-start; /* 기본적으로 왼쪽 정렬 */
+  margin: 8px 0;
+  align-self: flex-start; 
   max-width: 85%;
   word-wrap: break-word;
   line-height: 1.4;
@@ -451,7 +438,6 @@ onActivated(() => {
   background-color: #c0155e;
 }
 
-/* 챗봇 등장 애니메이션 */
 @keyframes slideInUp {
   from {
     transform: translateY(20px) scale(0.9);
@@ -463,7 +449,6 @@ onActivated(() => {
   }
 }
 
-/* Pagination Styles */
 .pagination {
   display: flex;
   justify-content: center;
@@ -509,12 +494,11 @@ onActivated(() => {
   margin-left: 15px;
 }
 
-/* Sort Buttons Styles */
 .sort-buttons {
   display: flex;
-  justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
-  padding: 0 40px 20px; /* 카드 목록 위에 위치하도록 패딩 조정 */
-  gap: 10px; /* 버튼 간 간격 */
+  justify-content: flex-end; 
+  padding: 0 40px 20px; 
+  gap: 10px; 
 }
 
 .sort-buttons button {
@@ -533,7 +517,7 @@ onActivated(() => {
 }
 
 .sort-buttons button.active {
-  background-color: #e0186f; /* 활성 버튼 색상 */
+  background-color: #e0186f; 
   color: white;
   border-color: #e0186f;
 }

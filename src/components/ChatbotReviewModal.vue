@@ -70,18 +70,12 @@ const submit = async () => {
     recommendationMessageId: props.recommendationMessageId,
   };
 
-  console.log("전송할 리뷰 데이터:", reviewData);
-
   try {
-    const accessToken = localStorage.getItem("accessToken");
-    const headers = accessToken
-      ? { Authorization: `Bearer ${accessToken}` }
-      : {};
-
-    const response = await api.post("/api/chats/review", reviewData, {
-      headers,
+    await api.post("/api/chats/review", reviewData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
     });
-    console.log("리뷰 전송 성공:", response.data);
 
     emit("submit", {
       rating: rating.value,
@@ -97,7 +91,6 @@ const submit = async () => {
     });
     emit("close");
   } catch (error) {
-    console.error("리뷰 전송 실패:", error);
 
     if (error.response && error.response.data) {
       const errorMessage =
@@ -133,7 +126,7 @@ const setRating = (value) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(33, 33, 33, 0.5); /* 212121 + 투명도 */
+  background-color: rgba(33, 33, 33, 0.5); 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -154,7 +147,6 @@ const setRating = (value) => {
   text-align: center;
 }
 
-/* 닫기 버튼 */
 .close-button {
   position: absolute;
   top: 12px;
@@ -167,7 +159,6 @@ const setRating = (value) => {
   cursor: pointer;
 }
 
-/* 별점 */
 .star-rating {
   margin: 12px 0 20px;
   text-align: center;
@@ -184,7 +175,6 @@ const setRating = (value) => {
   color: #ec008c;
 }
 
-/* 텍스트 영역 */
 textarea {
   width: 100%;
   border: 1px solid #d9d9d9;
@@ -197,7 +187,6 @@ textarea {
   font-family: inherit;
 }
 
-/* 제출 버튼 */
 .modal-buttons {
   width: 100%;
   display: flex;
