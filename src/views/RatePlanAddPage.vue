@@ -157,7 +157,7 @@ const handleSubmit = async () => {
 
     if (response.status === 201) {
       alert("요금제가 성공적으로 생성되었습니다!");
-      router.push("/admin/rateplan/storage");
+      window.location.href = '/admin/rateplan/storage';
     }
   } catch (error) {
     console.error("요금제 생성 중 오류 발생:", error);

@@ -65,7 +65,6 @@ api.interceptors.response.use(
           console.warn(newAccessToken);
           
           if (newAccessToken) {
-            console.info('[토큰 재발급 성공] 새로운 토큰:', newAccessToken);
             localStorage.setItem('accessToken', newAccessToken);
             onRefreshed(newAccessToken);
           } else {
