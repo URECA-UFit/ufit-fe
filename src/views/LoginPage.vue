@@ -50,13 +50,7 @@ const showNotification = (message, type) => {
   }
 
   notification.value = { message, type };
-  console.log('--- Notification State Update ---');
-  console.log('Message:', notification.value.message);
-  console.log('Type:', notification.value.type);
-  console.log('--- End Notification State Update ---');
 
-
-  // 3초 후 알림 자동 숨김
   notificationTimeout = setTimeout(() => {
     notification.value = { message: null, type: null };
     console.log('Notification hidden after timeout.');
@@ -71,15 +65,12 @@ const validateForm = () => {
 
   const passwordValue = password.value;
 
-    // 특수문자 (ASCII 기준)
     const specialCharRegex = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g;
     const specialCharCount = (passwordValue.match(specialCharRegex) || []).length;
 
-    // 개별 조건 체크
     const hasAlphabet = /[A-Za-z]/.test(passwordValue);
     const lengthValid = passwordValue.length >= 8 && passwordValue.length <= 15;
 
-    // 유효성 검증
     if (!lengthValid) {
       showNotification('비밀번호는 8자 이상 15자 이하로 입력해주세요.', 'error');
       return false;
@@ -98,25 +89,19 @@ const validateForm = () => {
 
 
 const handleLogin = async () => {
-  console.log('handleLogin 호출됨');
-  // 폼 유효성 검사
+
   if (!validateForm()) {
-    console.log('폼 유효성 검사 실패');
     return;
   }
 
   try {
-    // 로그인 API 호출
     const res = await api.post('/api/auth/login', {
       email: email.value,
       password: password.value
     }, {
-      withCredentials: true // 쿠키 등 자격 증명 포함
+      withCredentials: true
     });
 
-    console.log('로그인 응답 받음:', res);
-
-    // 응답 헤더에서 Access Token 추출 및 저장
     const accessToken = res.headers['authorization']?.replace('Bearer ', '');
 
     if (accessToken) {
@@ -131,27 +116,22 @@ const handleLogin = async () => {
         storageArea: localStorage
       }));
 
-      // 이벤트로 로그인 알림
       window.dispatchEvent(new CustomEvent('userLogin'));
 
       if (userRole === 'ADMIN') {
-        router.push('/admin/dashboard'); // 관리자는 대시보드 페이지로 이동
+        router.push('/admin/dashboard');
       } else if (userRole === 'USER') {
-        router.push('/rateplan/storage'); // 일반 사용자는 요금제 페이지로 이동
+        router.push('/rateplan/storage'); 
       }
 
-    } else {
-      console.error('로그인 성공 후 Access Token 누락:', res);
-    }
+    } 
   } catch (err) {
-    // 로그인 실패 시 에러 메시지 처리 및 알림 팝업
+
     const errorMessage = err.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
     showNotification(errorMessage, 'error');
-    console.error('로그인 에러:', err.response || err);
   }
 };
 
-// 비회원으로 요금제 목록 페이지로 이동하는 함수 추가
 const handleGuestBrowse = () => {
   router.push('/rateplan/storage');
 };
@@ -259,7 +239,6 @@ button:hover {
   height: auto;
 }
 
-/* --- 알림 팝업 스타일 --- */
 .notification-popup {
   position: fixed; 
   top: 20px;
@@ -280,7 +259,6 @@ button:hover {
   background-color: #e0186f;
 }
 
-/* 팝업 페이드인/아웃 애니메이션 */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
   10% { opacity: 1; transform: translateX(-50%) translateY(0); }

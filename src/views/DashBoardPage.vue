@@ -166,11 +166,9 @@ const chartOptions = ref({
         boxWidth: 10,
         boxHeight: 10,
         generateLabels(chart) {
-          // Use the default generator provided by Chart.js
           const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
           return original.map(item => {
             const text = item.text;
-            // Insert newline every 30 characters
             item.text = text.replace(/(.{30})/g, '$1\n');
             return item;
           });
@@ -207,7 +205,7 @@ watch(ratePlanMetrics, (newMetrics) => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  margin-right: 320px;   /* menu bar (≈240) + 80px breathing room */
+  margin-right: 320px;   
 }
 
 .chart-area {
@@ -248,7 +246,6 @@ watch(ratePlanMetrics, (newMetrics) => {
   background: #c0155e;
 }
 
-/* 헤더 */
 .list-header {
   background-color: #e0186f;
   color: white;
