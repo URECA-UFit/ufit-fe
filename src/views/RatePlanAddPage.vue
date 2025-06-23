@@ -57,8 +57,8 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>추가 데이터 정보<span class="required">*</span></label>
-            <select v-model="form.extraData" required>
+            <label>추가 데이터 정보</label>
+            <select v-model="form.extraData">
               <option value="">(해당 없음)</option>
               <option value="빠른 데이터(다쓰면 최대 5Mbps)">
                 빠른 데이터(다쓰면 최대 5Mbps)
