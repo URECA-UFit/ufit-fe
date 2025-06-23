@@ -26,7 +26,7 @@ const routes = [
   },
   {
     path: "/admin/rateplan/storage",
-    name: "AdmonRatePlanStore",
+    name: "AdminRatePlanStore",
     component: AdminRatePlanStorePage,
     meta: {requiresAuth: true, requiresAdmin: true, keepAlive: true}
   },
