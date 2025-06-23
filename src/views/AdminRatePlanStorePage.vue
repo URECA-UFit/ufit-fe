@@ -238,13 +238,6 @@ const checkScrollability = () => {
   const container = scrollContainer.value;
   const hasScroll = container.scrollHeight > container.clientHeight;
   
-  console.log('Scrollability check:', {
-    scrollHeight: container.scrollHeight,
-    clientHeight: container.clientHeight,
-    hasScroll,
-    containerHeight: container.offsetHeight
-  });
-  
   return hasScroll;
 };
 
@@ -363,8 +356,6 @@ const handleDeleteClick = async (ratePlanId) => {
 };
 
 const sortByPrice = async (type) => {
-  console.log('새로운 정렬 타입:', type);
-  
   sortType.value = type;
 
   removeScrollListener();
