@@ -216,7 +216,7 @@ const fetchRatePlans = async (isLoadMore = false) => {
       hasMoreData.value = false;
       
       if (isLoadMore) {
-        console.log('추가 로드 중 500 에러, 더 이상 로드하지 않음');
+        alert('추가 로드 중 500 에러, 더 이상 로드하지 않음');
       } else {
         alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
       }
@@ -301,9 +301,7 @@ const setupScrollListener = async () => {
   if (scrollContainer.value) {
     scrollContainer.value.addEventListener('scroll', handleScroll);
     
-  } else {
-    console.log('스크롤 컨테이너를 찾을 수 없음');
-  }
+  } 
 };
 
 const removeScrollListener = () => {

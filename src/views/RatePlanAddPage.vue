@@ -57,8 +57,8 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>추가 데이터 정보<span class="required">*</span></label>
-            <select v-model="form.extraData" required>
+            <label>추가 데이터 정보</label>
+            <select v-model="form.extraData">
               <option value="">(해당 없음)</option>
               <option value="빠른 데이터(다쓰면 최대 5Mbps)">
                 빠른 데이터(다쓰면 최대 5Mbps)
@@ -160,7 +160,7 @@ const handleSubmit = async () => {
       window.location.href = '/admin/rateplan/storage';
     }
   } catch (error) {
-    console.error("요금제 생성 중 오류 발생:", error);
+
     const msg =
       error.response?.data?.message || "알 수 없는 오류가 발생했습니다.";
     alert(`요금제 생성 실패: ${msg}`);
@@ -213,7 +213,7 @@ const handleCancel = () => {
 </script>
 
 <style scoped>
-/* 전체 컨테이너 및 배경 */
+
 .rate-plan-list-container {
   padding: 0;
   font-family: "Pretendard", sans-serif;
@@ -222,7 +222,6 @@ const handleCancel = () => {
   min-height: 100vh;
 }
 
-/* 헤더 */
 .list-header {
   background-color: #e0186f;
   color: white;
@@ -239,12 +238,11 @@ const handleCancel = () => {
   font-weight: 700;
 }
 
-/* 로그인/로그아웃 버튼 */
 .auth-button {
   padding: 10px 20px;
   border: 1px solid white;
   border-radius: 8px;
-  background-color: transparent; /* 투명 배경 */
+  background-color: transparent; 
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -258,7 +256,7 @@ const handleCancel = () => {
     255,
     255,
     0.2
-  ); /* 호버 시 투명도 있는 흰색 배경 */
+  ); 
 }
 .form-area {
   flex: 1;
