@@ -10,7 +10,6 @@
     <div class="plan-detail-discount">
       약정 할인 시 월 {{ formatCurrency(plan.discountFee) }}원
     </div>
-    <!-- 카드 5개 -->
     <div class="plan-card-row">
       <div class="plan-card" v-if="showDataCard">
         <div class="plan-card-title">데이터</div>
@@ -26,7 +25,6 @@
       </div>
     </div>
     <div class="plan-detail-bottom"></div>
-    <!-- 혜택 안내 영역을 페이지의 가장 마지막에 위치, 배경색을 흰색으로 변경 -->
     <div v-if="showBenefitSection" class="plan-benefit-section">
       <div class="benefit-title">혜택 안내</div>
       <div class="benefit-list">
@@ -44,13 +42,11 @@
         </div>
       </div>
     </div>
-    <!-- 버튼/챗봇 -->
     <button class="floating-action-button" @click="handleMascotClick">
       <img class="mascot-img" src="@/assets/mascot.png" alt="UFit 마스코트" />
     </button>
     <Chatbot
       v-if="showChatbot"
-      :openTrigger="chatbotOpenTrigger"
       @close="showChatbot = false"
       @review="goToReviewPage"
     />
@@ -71,7 +67,6 @@ import Chatbot from "@/components/ChatbotComponent.vue";
 
 const route = useRoute();
 
-// 예시 하드코딩 데이터
 const examplePlan = {
   planName: "5G 프리미엄",
   summary: "U⁺5G 서비스를 마음껏 즐길 수 있는 5G 요금제",
@@ -87,14 +82,9 @@ const examplePlan = {
 const plan = ref({ ...examplePlan });
 const showChatbot = ref(false);
 const showReviewModal = ref(false);
-const chatbotOpenTrigger = ref(false);
 
 const handleMascotClick = () => {
   showChatbot.value = !showChatbot.value;
-  if (showChatbot.value) {
-    chatbotOpenTrigger.value = false;
-    setTimeout(() => { chatbotOpenTrigger.value = true; }, 0);
-  }
 };
 
 const goToReviewPage = () => {
@@ -103,14 +93,12 @@ const goToReviewPage = () => {
 
 const handleReviewSubmit = (review) => {
   console.log("리뷰 제출됨:", review);
-  // TODO: 실제 API로 리뷰 전송
 };
 
 const formatCurrency = (amount) => {
   return amount ? amount.toLocaleString("ko-KR") : "-";
 };
 
-// 값이 유효한지 (null, undefined, 빈 문자열이 아닌지) 확인하는 헬퍼
 const isValid = (value) => value !== null && value !== undefined && value.toString().trim() !== '';
 
 const showDataCard = computed(() => isValid(plan.value.dataAllowance));
@@ -124,7 +112,6 @@ const parsedDiscountBenefit = computed(() => {
   if (typeof raw === 'string') {
     return raw.split('/').map(s => s.trim()).join('<br/>');
   }
-  // discountBenefit이 객체이고, discount_benefit 키가 문자열이면 출력
   if (typeof raw === 'object' && typeof raw.discount_benefit === 'string') {
     return raw.discount_benefit.split('/').map(s => s.trim()).join('<br/>');
   }
@@ -159,13 +146,11 @@ onMounted(async () => {
     const rateplanId = route.params.rateplanId
     console.log('PlanDetailPage mounted with rateplanId:', rateplanId);
     console.log('API 데이터 호출 시도 중 (PlanDetailPage):', `/api/rateplans/storages/${rateplanId}`);
-    // 실제 API 연동
     const { data } = await api.get(`/api/rateplans/storages/${rateplanId}`)
     console.log('API response:', data);
     plan.value = data
   } catch (e) {
     console.error('API 오류:', e)
-    // 실패 시 하드코딩 데이터 사용
     plan.value = { ...examplePlan }
   }
 });
@@ -188,7 +173,7 @@ onMounted(async () => {
   height: 70vh;
   left: 0;
   top: 0;
-  background: linear-gradient(to bottom, rgba(255, 228, 225, 0.7), rgba(255, 192, 203, 0.7)); /* 더 연하고 입체적인 그라데이션 핑크 */
+  background: linear-gradient(to bottom, rgba(255, 228, 225, 0.7), rgba(255, 192, 203, 0.7));
   min-height: 400px;
 }
 .plan-detail-title {
@@ -244,7 +229,7 @@ onMounted(async () => {
   padding-left: 0;
 }
 .plan-card {
-  background: #FFF0F5; /* 그라데이션 없이 정말정말 연한 핑크 (LavenderBlush) */
+  background: #FFF0F5;
   border-radius: 1.2rem;
   width: 13vw;
   min-width: 150px;
@@ -290,7 +275,6 @@ onMounted(async () => {
   background: #fff;
   z-index: 1;
 }
-/* 챗봇/문어 버튼 스타일 */
 .floating-action-button {
   position: fixed;
   bottom: 25px;

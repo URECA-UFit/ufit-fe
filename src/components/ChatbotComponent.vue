@@ -27,7 +27,6 @@
             </div>
             <div v-else>{{ msg.content }}</div>
           </div>
-          <!-- 과거 메시지 중 RECOMMEND 타입일 때 리뷰 버튼 말풍선 -->
           <div v-if="!msg.owner && msg.isRecommendation" class="chatbot-msg bot-msg">
             <button @click="openReviewModal(msg)" class="chatbot-review-btn">
               챗봇 리뷰 작성하기
@@ -55,7 +54,6 @@
             </div>
             <div v-else>{{ msg.content }}</div>
         </div>
-          <!-- 현재 메시지 중 RECOMMEND 타입일 때 리뷰 버튼 말풍선 -->
           <div v-if="!msg.owner && msg.isRecommendation" class="chatbot-msg bot-msg">
             <button @click="openReviewModal(msg)" class="chatbot-review-btn">
             챗봇 리뷰 작성하기
@@ -108,7 +106,6 @@ const currentReviewMessage = ref(null);
 const answerType = ref('');
 
 const openReviewModal = (message) => {
-  // 특정 메시지를 currentReviewMessage에 설정
   currentReviewMessage.value = message;
   showReviewModal.value = true;
 };
@@ -126,12 +123,10 @@ const getRecommendPlans = (message) => {
   
   const plans = {};
   if (message.recommendedPlans[0]) {
-    // name 속성이 없으면 다른 속성들 확인
     const firstPlan = message.recommendedPlans[0];
     plans.aPlan = firstPlan.name || firstPlan.planName || firstPlan.title || '알 수 없는 요금제';
   }
   if (message.recommendedPlans[1]) {
-    // name 속성이 없으면 다른 속성들 확인
     const secondPlan = message.recommendedPlans[1];
     plans.bPlan = secondPlan.name || secondPlan.planName || secondPlan.title || '알 수 없는 요금제';
   }
@@ -140,7 +135,6 @@ const getRecommendPlans = (message) => {
 };
 
 const getMessageId = (message) => {
-  // 백엔드에서 String으로 넘어오므로 직접 반환
   const result = message?.messageId || '';
 
   return result;
@@ -148,7 +142,6 @@ const getMessageId = (message) => {
 
 const handleReviewSubmit = (review) => {
   console.log('리뷰 제출됨:', review);
-  // 리뷰 모달에서 API 호출이 완료되었으므로 여기서는 모달만 닫음
   closeReviewModal();
 };
 
@@ -175,15 +168,12 @@ function splitContentWithRecommendations(content) {
   const parts = content.split('[[RECOMMENDATION_LIST]]');
   const result = [];
   
-  // 첫 번째 텍스트 부분
   if (parts[0]) {
     result.push({ type: 'text', content: parts[0] });
   }
   
-  // 추천 목록 자리
   result.push({ type: 'recommendations' });
   
-  // 마지막 텍스트 부분
   if (parts[1]) {
     result.push({ type: 'text', content: parts[1] });
   }
@@ -192,11 +182,9 @@ function splitContentWithRecommendations(content) {
 }
 
 function handlePlanClick(plan) {
-  // 요금제 ID를 사용하여 상세 페이지로 이동
   const planId = plan.planId;
   
   if (planId) {
-    // PlanDetailPage로 이동
     window.location.href = `/rateplan/storage/${planId}`;
   } else {
     console.error('planId가 없습니다:', plan);
@@ -232,9 +220,7 @@ async function fetchMorePastMessages() {
     if (messagesPage.item && messagesPage.item.length > 0) {
       const box = document.querySelector('.chatbot-messages');
       const prevHeight = box ? box.scrollHeight : 0;
-      // 추가로 불러온 과거 메시지에도 recommendPlans 기반으로 추천 정보 추가
       const processedMessages = messagesPage.item.map(msg => {
-        // recommendPlans의 첫 번째 요소의 planId가 빈 값이 아닐 때만 RECOMMEND로 판단
         const hasValidRecommendation = msg.recommendPlans && 
                                       msg.recommendPlans.length > 0 && 
                                       msg.recommendPlans[0].planId && 
@@ -283,7 +269,6 @@ async function openChatbot() {
         
         const processedMessages = messagesPage.item.map(msg => {
 
-          // recommendPlans의 첫 번째 요소의 planId가 빈 값이 아닐 때만 RECOMMEND로 판단
           const hasValidRecommendation = msg.recommendPlans && 
                                         msg.recommendPlans.length > 0 && 
                                         msg.recommendPlans[0].planId && 
@@ -323,14 +308,12 @@ const sendMessage = async () => {
     const accessToken = getAccessToken();
     const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 
-    // 사용자 메시지를 먼저 표시
     currentMessages.value.push({
       content: message,
       owner: true,
       messageId: null
     });
 
-    // 스크롤을 최하단으로 이동
     await nextTick();
   scrollToBottom();
 
@@ -339,7 +322,6 @@ const sendMessage = async () => {
       chatRoomId: chatRoomId.value
     }, { headers });
 
-    // API 응답값 로그 출력
     console.log('===== 챗봇 메시지 API 응답 =====');
     console.log('전체 응답:', response);
     console.log('messageId:', response.messageId);
@@ -348,7 +330,6 @@ const sendMessage = async () => {
     console.log('recommendPlans:', response.recommendPlans);
     console.log('================================');
 
-    // 봇 응답 메시지 추가
     const hasValidRecommendation = response.answerType === 'RECOMMEND' && 
                                    response.recommendPlans && 
                                    response.recommendPlans.length > 0;
@@ -374,7 +355,6 @@ const sendMessage = async () => {
       answerType: response.answerType
     });
 
-    // 스크롤을 최하단으로 이동
     await nextTick();
     scrollToBottom();
   } catch (error) {
@@ -401,12 +381,10 @@ function onScroll(e) {
   }
 }
 
-// 로그인/로그아웃 이벤트 감지하여 챗봇 자동 닫기
 const handleAuthChange = () => {
   emit('close');
 };
 
-// localStorage 변화 감지 (다른 탭에서의 로그아웃)
 const handleStorageChange = (event) => {
   if (event.key === 'accessToken' && event.newValue === null) {
     emit('close');
@@ -417,7 +395,6 @@ onMounted(() => {
   const box = document.querySelector('.chatbot-messages');
   if (box) box.addEventListener('scroll', onScroll);
   
-  // 이벤트 리스너 등록
   window.addEventListener('userLogout', handleAuthChange);
   window.addEventListener('userLogin', handleAuthChange);
   window.addEventListener('storage', handleStorageChange);
@@ -427,7 +404,6 @@ onBeforeUnmount(() => {
   const box = document.querySelector('.chatbot-messages');
   if (box) box.removeEventListener('scroll', onScroll);
   
-  // 이벤트 리스너 제거
   window.removeEventListener('userLogout', handleAuthChange);
   window.removeEventListener('userLogin', handleAuthChange);
   window.removeEventListener('storage', handleStorageChange);

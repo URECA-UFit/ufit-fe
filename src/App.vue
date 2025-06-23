@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-// 기존 script 내용은 여기에 필요 없음
+
 </script>
 
 <style>

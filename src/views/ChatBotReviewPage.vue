@@ -54,7 +54,7 @@ const isLoading = ref(false);
 const scrollContainer = ref(null);
 
 const fetchChatBotReview = async () => {
-  console.log('fetchChatBotReview 호출됨'); // 디버깅용
+  console.log('fetchChatBotReview 호출됨');
   
   if (isLoading.value || !hasNext.value) {
     return;
@@ -73,7 +73,7 @@ const fetchChatBotReview = async () => {
       headers: {
         Authorization: `Bearer ${token}`
       },
-      params // params 객체를 전달
+      params
     });
   
     chatBotReviews.value = [...chatBotReviews.value, ...res.data.item];
@@ -118,7 +118,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 전체 컨테이너 및 배경 */
 .chatbot-review-list-container {
   padding: 0;
   font-family: "Pretendard", sans-serif;
@@ -127,7 +126,6 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-/* 헤더 */
 .list-header {
   background-color: #e0186f;
   color: white;
@@ -144,12 +142,11 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* 로그인/로그아웃 버튼 */
 .auth-button {
   padding: 10px 20px;
   border: 1px solid white;
   border-radius: 8px;
-  background-color: transparent; /* 투명 배경 */
+  background-color: transparent;
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -166,35 +163,20 @@ onMounted(() => {
   ); 
 }
 
-/* 리뷰 카드 목록 */
 .chatbot-review-cards {
-  height: calc(100vh - 220px); /* 헤더 + 마진 고려 */
+  height: calc(100vh - 220px);
   overflow-y: auto;
-  /* padding: 0 40px; */
-  margin-right: 300px; /*AdminMenuBar 공간 확보*/
+  margin-right: 300px;
 
 }
 
-/* 각 리뷰 카드 */
-/* .chatbot-review-card {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border: none;
-  transition: transform 0.2s ease;
-  margin-bottom: 20px;
-} */
-
 .chatbot-review-card:hover {
-  transform: translateY(-5px); /* 호버 시 약간 위로 */
+  transform: translateY(-5px);
 }
 
 .card-header {
   margin-bottom: 15px;
-  position: relative; /* 뱃지 위치 조정을 위해 */
+  position: relative;
 }
 
 .plan-name {
@@ -209,7 +191,7 @@ onMounted(() => {
 .plan-name ::v-deep(br) {
   content: "";
   display: block;
-  margin-bottom: 0.2em; /* 줄바꿈 시 간격 */
+  margin-bottom: 0.2em;
 }
 
 .plan-summary {
@@ -241,7 +223,7 @@ onMounted(() => {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
-  align-items: flex-start; /* 위쪽 기준 정렬 */
+  align-items: flex-start;
 }
 
 .review-info,
@@ -270,7 +252,6 @@ onMounted(() => {
   color: #333;
 }
 
-/* 별점 */
 .stars {
   font-size: 18px;
   color: #f5a623;
@@ -282,7 +263,7 @@ onMounted(() => {
 
 .fee-section {
   display: flex;
-  flex-direction: column; /* 월 요금과 할인 요금을 세로로 정렬 */
+  flex-direction: column;
   align-items: flex-start;
 }
 
@@ -312,7 +293,6 @@ onMounted(() => {
 }
 
 
-/* 스크롤바 스타일링 */
 .chatbot-review-cards::-webkit-scrollbar {
   width: 8px;
 }
@@ -331,7 +311,6 @@ onMounted(() => {
   background: #a8a8a8;
 }
 
-/* Pagination Styles */
 .pagination {
   display: flex;
   justify-content: center;

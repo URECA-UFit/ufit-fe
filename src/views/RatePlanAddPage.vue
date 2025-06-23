@@ -157,7 +157,7 @@ const handleSubmit = async () => {
 
     if (response.status === 201) {
       alert("요금제가 성공적으로 생성되었습니다!");
-      window.location.href = '/admin/rateplan/storage';
+      router.push("/admin/rateplan/storage");
     }
   } catch (error) {
     console.error("요금제 생성 중 오류 발생:", error);
@@ -213,7 +213,6 @@ const handleCancel = () => {
 </script>
 
 <style scoped>
-/* 전체 컨테이너 및 배경 */
 .rate-plan-list-container {
   padding: 0;
   font-family: "Pretendard", sans-serif;
@@ -222,7 +221,6 @@ const handleCancel = () => {
   min-height: 100vh;
 }
 
-/* 헤더 */
 .list-header {
   background-color: #e0186f;
   color: white;
@@ -239,12 +237,11 @@ const handleCancel = () => {
   font-weight: 700;
 }
 
-/* 로그인/로그아웃 버튼 */
 .auth-button {
   padding: 10px 20px;
   border: 1px solid white;
   border-radius: 8px;
-  background-color: transparent; /* 투명 배경 */
+  background-color: transparent;
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -258,7 +255,7 @@ const handleCancel = () => {
     255,
     255,
     0.2
-  ); /* 호버 시 투명도 있는 흰색 배경 */
+  );
 }
 .form-area {
   flex: 1;
@@ -394,7 +391,7 @@ select {
   background: #fff;
   transition: border 0.2s;
   width: 100%;
-  height: 48px; /* 세로 길이 추가 */
+  height: 48px;
 }
 
 select:focus {

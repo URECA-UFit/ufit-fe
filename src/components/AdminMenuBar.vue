@@ -101,8 +101,7 @@ function isActive(path) {
 .admin-menu-bar li:active {
   background: #ffe6f7;
 }
-
-/* 반응형: 태블릿/모바일에서 하단 고정 가로 메뉴 */
+ 
 @media (max-width: 900px) {
   .admin-menu-bar {
     top: auto;
